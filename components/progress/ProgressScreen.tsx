@@ -6,6 +6,7 @@ import { useHydrated } from "@/components/useHydrated";
 import { SKILLS, trackedQuestions } from "@/lib/catalog";
 import { useLearnStore } from "@/lib/learn-store";
 import { practiceStreak } from "@/lib/plan";
+import { modulePictures } from "@/lib/readiness";
 
 export function ProgressScreen() {
   const hydrated = useHydrated();
@@ -13,6 +14,9 @@ export function ProgressScreen() {
   const days = useLearnStore((state) => state.days);
   const cards = trackedQuestions();
   const streak = practiceStreak(days, Date.now());
+  const mocks = useLearnStore((state) => state.mocks);
+  const productions = useLearnStore((state) => state.productions);
+  const modules = modulePictures({ memory, cards, mocks, productions });
 
   const rows = SKILLS.filter((skill) => skill.id !== "schreiben" && skill.id !== "sprechen").map((skill) => {
     const mine = cards.filter((card) => card.skill === skill.id);
@@ -33,7 +37,16 @@ export function ProgressScreen() {
   return (
     <AppFrame>
       <main className="mx-auto w-full max-w-6xl px-4 pb-[var(--tab-clear,7rem)] pt-6 lg:px-10 lg:pb-16 lg:pt-10">
-        <h1 className="font-serif text-5xl leading-none lg:text-6xl">Progrès</h1>
+        <h1 className="text-center font-serif text-4xl leading-none sm:text-left sm:text-5xl lg:text-6xl">Progrès</h1>
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {modules.map((module) => (
+            <li key={module.id} className="rounded-3xl border border-[#ddd4c4] bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#5c4318]">{module.label}</p>
+              <p className="mt-2 font-serif text-3xl text-[#16324f]">{module.status === "seuil" ? "60 atteint" : module.status === "fragile" ? "Sous 60" : module.status === "proche" ? "Proche" : "À commencer"}</p>
+              <p className="mt-2 text-sm leading-relaxed text-[#5e584e]">{hydrated ? module.note : "…"}</p>
+            </li>
+          ))}
+        </ul>
         <div className="mt-8 grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
           <p className="rounded-3xl bg-[#16324f] p-6 text-[#f6f1e7]">
             <span className="block font-serif text-6xl leading-none">{hydrated ? streak : "…"}</span>

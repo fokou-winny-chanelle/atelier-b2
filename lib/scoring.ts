@@ -25,6 +25,16 @@ export function scoredQuestions(part: Part): Question[] {
   return part.questions.filter((question) => !question.example);
 }
 
+/** Goethe-Zertifikat B2: 30 items × 3,33, rounded. 18 right answers = 60, the pass line. */
+const POINTS_FOR_30 = [0, 3, 7, 10, 13, 17, 20, 23, 27, 30, 33, 37, 40, 43, 47, 50, 53, 57, 60, 63, 67, 70, 73, 77, 80, 83, 87, 90, 93, 97, 100];
+
+export function checkpointPoints(correct: number, total: number): number {
+  if (total <= 0) return 0;
+  const safe = Math.max(0, Math.min(total, correct));
+  if (total === 30) return POINTS_FOR_30[safe] ?? 0;
+  return Math.round((safe / total) * 100);
+}
+
 export function gradeQuestions(
   questions: Question[],
   answers: Record<string, string>,
@@ -32,7 +42,7 @@ export function gradeQuestions(
   const scored = questions.filter((question) => !question.example);
   const total = scored.length;
   const correct = scored.filter((question) => answers[question.id] === question.answer).length;
-  const points = total === 0 ? 0 : Math.round((correct / total) * 100);
+  const points = checkpointPoints(correct, total);
   return { correct, total, points, passed: points >= PASS_POINTS };
 }
 

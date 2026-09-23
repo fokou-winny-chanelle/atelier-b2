@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AudioButton } from "@/components/session/AudioButton";
 import { RichBlock } from "@/components/session/RichBlock";
@@ -17,6 +17,40 @@ const UMLAUTS = ["ä", "ö", "ü", "ß", "Ä", "Ö", "Ü"] as const;
 function unitCount(exam: NonNullable<ReturnType<typeof getExam>>, moduleId: ModuleId): number {
   if (moduleId === "lesen" || moduleId === "hoeren") return exam[moduleId].parts.length;
   return exam[moduleId].tasks.length;
+}
+
+function useExamExpired(mode: string | undefined, endsAt: number | null): boolean {
+  const [expired, setExpired] = useState(() => mode === "pruefung" && endsAt != null && endsAt <= Date.now());
+  useEffect(() => {
+    if (mode !== "pruefung" || endsAt == null) {
+      setExpired(false);
+      return;
+    }
+    if (endsAt <= Date.now()) {
+      setExpired(true);
+      return;
+    }
+    const timer = window.setInterval(() => {
+      if (endsAt <= Date.now()) {
+        setExpired(true);
+        window.clearInterval(timer);
+      }
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [endsAt, mode]);
+  return expired;
+}
+
+function ClockDisplay({ endsAt, pausedRemainingMs }: { endsAt: number | null; pausedRemainingMs: number | null }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (endsAt == null) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [endsAt]);
+  const remaining = endsAt != null ? endsAt - now : (pausedRemainingMs ?? 0);
+  const tone = remaining < 60_000 ? "timer is-danger" : remaining < 5 * 60_000 ? "timer is-warn" : "timer";
+  return <span className={tone}>{clock(remaining)}</span>;
 }
 
 function clock(ms: number): string {
@@ -50,13 +84,13 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
   const advancePhase = useExamStore((state) => state.advancePhase);
   const submit = useExamStore((state) => state.submit);
 
-  const [now, setNow] = useState(() => Date.now());
   const [highlightOn, setHighlightOn] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [overviewOpen, setOverviewOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [leftPct, setLeftPct] = useState(46);
   const [mobilePane, setMobilePane] = useState<"texte" | "questions">("texte");
+  const expired = useExamExpired(session?.mode, session?.endsAt ?? null);
 
   const exam = session ? getExam(session.examId) : undefined;
 
@@ -65,11 +99,6 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
     return () => {
       delete document.documentElement.dataset.exam;
     };
-  }, []);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 250);
-    return () => window.clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -96,8 +125,6 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
   }
 
   const moduleId = session.phases[session.phaseIndex] ?? "lesen";
-  const remaining = session.endsAt != null ? session.endsAt - now : (session.pausedRemainingMs ?? 0);
-  const expired = session.mode === "pruefung" && session.endsAt != null && remaining <= 0;
   const locked = expired;
 
   return (
@@ -119,9 +146,7 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
         </ol>
         <div className="mast-side">
           <span className="who">{session.candidate || "Teilnehmer/in"}</span>
-          <span className={remaining < 60_000 ? "timer is-danger" : remaining < 5 * 60_000 ? "timer is-warn" : "timer"}>
-            {clock(remaining)}
-          </span>
+          <ClockDisplay endsAt={session.endsAt} pausedRemainingMs={session.pausedRemainingMs} />
           <button type="button" className="text-btn" onClick={() => setHelpOpen(true)}>
             Aide
           </button>
@@ -133,10 +158,10 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
 
       <div className={`flex min-h-0 flex-1 flex-col ${mobilePane === "questions" ? "pane-questions" : "pane-texte"}`}>
         <div className="grid grid-cols-2 border-b border-[#ddd4c4] bg-[#fbf8f2] md:hidden">
-          <button type="button" className={mobilePane === "texte" ? "min-h-12 bg-white font-semibold text-[#16324f]" : "min-h-12 text-stone-500"} onClick={() => setMobilePane("texte")}>
+          <button type="button" className={mobilePane === "texte" ? "min-h-12 bg-white text-center font-semibold text-[#16324f]" : "min-h-12 text-center text-stone-500"} onClick={() => setMobilePane("texte")}>
             Texte
           </button>
-          <button type="button" className={mobilePane === "questions" ? "min-h-12 bg-white font-semibold text-[#16324f]" : "min-h-12 text-stone-500"} onClick={() => setMobilePane("questions")}>
+          <button type="button" className={mobilePane === "questions" ? "min-h-12 bg-white text-center font-semibold text-[#16324f]" : "min-h-12 text-center text-stone-500"} onClick={() => setMobilePane("questions")}>
             Questions
           </button>
         </div>
@@ -245,7 +270,7 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
         />
       ) : null}
 
-      {helpOpen ? <Help onClose={() => setHelpOpen(false)} /> : null}
+      {helpOpen ? <Help moduleId={moduleId} onClose={() => setHelpOpen(false)} /> : null}
     </div>
   );
 }
@@ -318,7 +343,7 @@ function ClosedModule({
           return (
             <article
               key={stimulus.id}
-              className={highlightOn ? "block is-marking" : "block"}
+              className={highlightOn ? "passage is-marking" : "passage"}
               onMouseUp={() => {
                 if (!highlightOn) return;
                 const quote = window.getSelection()?.toString().trim() ?? "";
@@ -465,8 +490,6 @@ function WritingRoom({
 }) {
   const task = tasks[session.partIndex] ?? tasks[0];
   if (!task) return null;
-  const value = session.writings[task.id] ?? "";
-  const words = countWords(value);
   return (
     <div className="split">
       <section className="col stimulus" style={{ flexBasis: `${leftPct}%` }}>
@@ -483,20 +506,15 @@ function WritingRoom({
       </section>
       <Gutter leftPct={leftPct} setLeftPct={setLeftPct} />
       <section className="col questions">
-        <label className="writer">
-          <span>Ihr Text</span>
-          <textarea
-            value={value}
-            disabled={locked}
-            spellCheck
-            onChange={(event) => onChange(session.id, task.id, event.target.value)}
-            onPaste={(event) => session.mode === "pruefung" && event.preventDefault()}
-            onDrop={(event) => session.mode === "pruefung" && event.preventDefault()}
-          />
-        </label>
-        <p className={words >= task.minWords ? "words is-ok" : "words"}>
-          {words} Wörter · mindestens {task.minWords}
-        </p>
+        <DraftField
+          label="Ihr Text"
+          taskId={task.id}
+          value={session.writings[task.id] ?? ""}
+          disabled={locked}
+          minWords={task.minWords}
+          blockPaste={session.mode === "pruefung"}
+          onCommit={(next) => onChange(session.id, task.id, next)}
+        />
       </section>
     </div>
   );
@@ -533,12 +551,72 @@ function SpeakingRoom({
       </section>
       <Gutter leftPct={leftPct} setLeftPct={setLeftPct} />
       <section className="col questions">
-        <label className="writer">
-          <span>Notizen für die Vorbereitung</span>
-          <textarea value={session.notes[task.id] ?? ""} onChange={(event) => onChange(session.id, task.id, event.target.value)} />
-        </label>
+        <DraftField
+          label="Notizen für die Vorbereitung"
+          taskId={task.id}
+          value={session.notes[task.id] ?? ""}
+          onCommit={(next) => onChange(session.id, task.id, next)}
+        />
       </section>
     </div>
+  );
+}
+
+function DraftField({
+  label,
+  taskId,
+  value,
+  disabled,
+  minWords,
+  blockPaste,
+  onCommit,
+}: {
+  label: string;
+  taskId: string;
+  value: string;
+  disabled?: boolean;
+  minWords?: number;
+  blockPaste?: boolean;
+  onCommit: (value: string) => void;
+}) {
+  const [draft, setDraft] = useState(value);
+  const timer = useRef(0);
+  const seenTask = useRef(taskId);
+  useEffect(() => {
+    if (seenTask.current === taskId) return;
+    seenTask.current = taskId;
+    setDraft(value);
+  }, [taskId, value]);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const words = countWords(draft);
+  return (
+    <>
+      <label className="writer">
+        <span>{label}</span>
+        <textarea
+          value={draft}
+          disabled={disabled}
+          spellCheck
+          onChange={(event) => {
+            const next = event.target.value;
+            setDraft(next);
+            window.clearTimeout(timer.current);
+            timer.current = window.setTimeout(() => onCommit(next), 200);
+          }}
+          onBlur={() => {
+            window.clearTimeout(timer.current);
+            onCommit(draft);
+          }}
+          onPaste={(event) => blockPaste && event.preventDefault()}
+          onDrop={(event) => blockPaste && event.preventDefault()}
+        />
+      </label>
+      {minWords != null ? (
+        <p className={words >= minWords ? "words is-ok" : "words"}>
+          {words} Wörter · mindestens {minWords}
+        </p>
+      ) : null}
+    </>
   );
 }
 
@@ -686,7 +764,7 @@ function Overview({
       {parts.map((part, partIndex) => (
         <div key={part.id}>
           <h3>{part.title}</h3>
-          <div className="grid">
+          <div className="overview-cells">
             {part.questions
               .filter((question) => !question.example)
               .map((question) => {
@@ -740,24 +818,91 @@ function ConfirmLeave({
   );
 }
 
-function Help({ onClose }: { onClose: () => void }) {
+function Help({ moduleId, onClose }: { moduleId: ModuleId; onClose: () => void }) {
+  const phone = HELP_PHONE[moduleId];
+  const desk = HELP_DESK[moduleId];
   return (
     <dialog open className="sheet wide">
       <header className="sheet-head">
-        <h2>Comment travailler</h2>
+        <h2>Aide · {MODULE_LABEL[moduleId]}</h2>
         <button type="button" onClick={onClose}>
           Fermer
         </button>
       </header>
-      <ul className="help">
-        <li>Le texte reste à gauche, les questions à droite. Chaque colonne défile seule.</li>
-        <li>Une seule case par question. Sur les trous et les titres, une lettre ne sert qu’une fois : en la recochant, elle quitte l’autre question.</li>
-        <li>Markieren signale une question à revoir. Übersicht montre le vert, le blanc et le jaune.</li>
-        <li>Textmarker : activez l’outil, sélectionnez un passage à gauche, cliquez le surlignage pour l’enlever.</li>
-        <li>À l’écoute, le bouton ne joue le texte qu’une fois ou deux, sans avance rapide. En entraînement, la transcription apparaît après la dernière écoute.</li>
-        <li>À l’écrit, le compteur de mots est en direct. Les boutons ä ö ü ß insèrent le signe à l’endroit du curseur. En mode examen, le collage est bloqué.</li>
-        <li>Tout est enregistré dans ce navigateur à chaque clic.</li>
+      <ul className="help help-phone">
+        {phone.map((line) => (
+          <li key={line}>{line}</li>
+        ))}
+      </ul>
+      <ul className="help help-desk">
+        {desk.map((line) => (
+          <li key={line}>{line}</li>
+        ))}
       </ul>
     </dialog>
   );
 }
+
+const HELP_PHONE: Record<ModuleId, string[]> = {
+  lesen: [
+    "Sur le téléphone, Texte et Questions sont deux écrans. Le bandeau sous le titre bascule de l’un à l’autre.",
+    "Lisez le texte, puis ouvrez Questions. Une seule case par question.",
+    "Sur les trous et les titres, une lettre ne sert qu’une fois : la recocher la retire de l’autre question.",
+    "Markieren garde la question pour plus tard. Übersicht ouvre la grille : vert = répondu, jaune = marqué, blanc = ouvert. Un numéro vous ramène sur Questions.",
+    "Textmarker : activez l’outil dans le pied, revenez sur Texte, sélectionnez un passage. Touchez le surlignage pour l’enlever.",
+    "Zurück et Nächster Teil sont au centre du pied. Chaque réponse est enregistrée dans ce navigateur.",
+  ],
+  hoeren: [
+    "Sur le téléphone, l’écoute est sur Texte et les questions sur Questions. Basculez avec le bandeau sous le titre.",
+    "Lancez Écouter avant de passer aux questions. Le nombre d’écoutes est limité, sans avance rapide.",
+    "En entraînement, la transcription apparaît sur Texte après la dernière écoute. En examen, elle reste cachée.",
+    "Une seule case par question. Quand les voix peuvent se répéter, la même lettre peut revenir.",
+    "Markieren et Übersicht fonctionnent comme en lecture : la grille jaune et verte ouvre directement la question.",
+    "Zurück et Nächster Teil sont au centre du pied. Chaque réponse est enregistrée dans ce navigateur.",
+  ],
+  schreiben: [
+    "Sur le téléphone, la consigne est sur Texte et votre copie sur Questions. Le bandeau sous le titre bascule.",
+    "Le compteur de mots est sous le champ, sur Questions. Le minimum est indiqué à côté.",
+    "Les boutons ä ö ü ß du pied insèrent le signe là où se trouve le curseur. Touchez d’abord le texte.",
+    "En mode examen, coller un texte est bloqué. En entraînement, la pause du pied arrête le temps.",
+    "Chaque Teil a sa consigne. Nächster Teil, au centre du pied, passe à la tâche suivante.",
+    "Le texte est enregistré dans ce navigateur au fur et à mesure.",
+  ],
+  sprechen: [
+    "Sur le téléphone, la situation est sur Texte et vos notes sur Questions. Le bandeau sous le titre bascule.",
+    "Ce module prépare la prise de parole. Les notes ne sont pas une note d’examen.",
+    "Le temps affiché en haut est celui du module. La préparation officielle dure 15 minutes avant d’entrer.",
+    "Chaque Teil change de situation. Nächster Teil est au centre du pied.",
+    "Les notes restent dans ce navigateur.",
+  ],
+};
+
+const HELP_DESK: Record<ModuleId, string[]> = {
+  lesen: [
+    "Le texte reste à gauche, les questions à droite. Chaque colonne défile seule. La barre entre les deux se tire.",
+    "Une seule case par question. Sur les trous et les titres, une lettre ne sert qu’une fois : en la recochant, elle quitte l’autre question.",
+    "Markieren signale une question. Übersicht montre le vert, le blanc et le jaune, puis saute à la question.",
+    "Textmarker : activez l’outil, sélectionnez un passage à gauche, cliquez le surlignage pour l’enlever.",
+    "Zurück et Nächster Teil avancent dans le module. Tout est enregistré dans ce navigateur.",
+  ],
+  hoeren: [
+    "Le lecteur est à gauche, les questions à droite. Chaque colonne défile seule.",
+    "Le bouton ne joue le texte qu’une fois ou deux, sans avance rapide.",
+    "En entraînement, la transcription apparaît à gauche après la dernière écoute. En examen, elle reste cachée.",
+    "Une seule case par question. Markieren et Übersicht servent à revenir sur une question.",
+    "Zurück et Nächster Teil avancent dans le module. Tout est enregistré dans ce navigateur.",
+  ],
+  schreiben: [
+    "La consigne est à gauche, votre texte à droite. La barre entre les deux se tire.",
+    "Le compteur de mots est en direct, sous le champ. Le minimum est indiqué à côté.",
+    "Les boutons ä ö ü ß insèrent le signe à l’endroit du curseur.",
+    "En mode examen, le collage est bloqué. En entraînement, Pause arrête le temps.",
+    "Nächster Teil passe à la tâche suivante. Le texte est enregistré dans ce navigateur.",
+  ],
+  sprechen: [
+    "La situation est à gauche, vos notes à droite. La barre entre les deux se tire.",
+    "Ce module prépare la prise de parole. Les notes ne sont pas une note d’examen.",
+    "Le temps en haut est celui du module. La préparation officielle dure 15 minutes avant d’entrer.",
+    "Nächster Teil change de situation. Les notes restent dans ce navigateur.",
+  ],
+};

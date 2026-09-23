@@ -1,12 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DayMark } from "@/components/art/DayMark";
 import { AppFrame } from "@/components/shell/AppFrame";
 import { useHydrated } from "@/components/useHydrated";
+import { SKILLS, trackedQuestions } from "@/lib/catalog";
 import { EXAMS } from "@/lib/exams";
 import { useLearnStore } from "@/lib/learn-store";
+import { advise } from "@/lib/readiness";
 import { useExamStore } from "@/lib/store";
 import type { ModuleId, Mode } from "@/lib/types";
 import { MODULE_LABEL } from "@/lib/types";
@@ -17,7 +20,11 @@ export function HomeScreen() {
   const preview = useLearnStore((state) => state.preview);
   const plan = useLearnStore((state) => state.plan);
   const start = useLearnStore((state) => state.start);
+  const memory = useLearnStore((state) => state.memory);
+  const mocks = useLearnStore((state) => state.mocks);
+  const productions = useLearnStore((state) => state.productions);
   const candidate = useExamStore((state) => state.candidate);
+  const sessions = useExamStore((state) => state.sessions);
   const setCandidate = useExamStore((state) => state.setCandidate);
   const createSession = useExamStore((state) => state.createSession);
   const [openExam, setOpenExam] = useState<string | null>(null);
@@ -25,6 +32,20 @@ export function HomeScreen() {
   const review = preview("review");
   const weekday = new Date().getDay();
   const running = Boolean(hydrated && plan && !plan.finishedAt);
+  const advice = advise({
+    now: Date.now(),
+    running,
+    dueSteps: hydrated ? review.count : 0,
+    memory,
+    cards: trackedQuestions(),
+    skills: SKILLS,
+    mocks,
+    productions,
+  });
+  const recent = Object.values(sessions)
+    .filter((session) => session.submitted)
+    .sort((a, b) => (b.finishedAt ?? 0) - (a.finishedAt ?? 0))
+    .slice(0, 4);
 
   function openPractice(kind: "daily" | "review" | "skill", skill?: string) {
     if (running) {
@@ -33,6 +54,16 @@ export function HomeScreen() {
     }
     start(kind, skill);
     router.push("/pratique");
+  }
+
+  function followAdvice() {
+    if (advice.action === "continue") {
+      router.push("/pratique");
+      return;
+    }
+    if (advice.action === "review") openPractice("review");
+    else if (advice.action === "skill" && advice.skill) openPractice("skill", advice.skill);
+    else openPractice("daily");
   }
 
   function startExam(examId: string, phases: ModuleId[], mode: Mode) {
@@ -54,31 +85,21 @@ export function HomeScreen() {
   return (
     <AppFrame>
       <main className="mx-auto w-full max-w-6xl px-4 pb-[var(--tab-clear,7rem)] pt-6 lg:px-10 lg:pb-16 lg:pt-10">
-        <header className="flex items-end justify-between gap-6">
+        <header className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-end sm:justify-between sm:text-left">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#5c4318]">Goethe-Zertifikat B2</p>
-            <h1 className="mt-2 font-serif text-5xl leading-none lg:text-6xl">Aujourd’hui</h1>
+            <h1 className="mt-2 font-serif text-4xl leading-none sm:text-5xl lg:text-6xl">Aujourd’hui</h1>
           </div>
           <DayMark day={weekday} />
         </header>
 
         <div className="mt-8 grid items-stretch gap-4 lg:grid-cols-12">
           <article className="flex flex-col rounded-3xl bg-[#16324f] p-6 text-[#f6f1e7] lg:col-span-7 lg:p-8">
-            <p className="text-sm font-semibold text-[#f0d7a4]">{hydrated ? today.title : "Aujourd’hui"}</p>
-            <h2 className="mt-2 max-w-xl font-serif text-3xl leading-tight lg:text-5xl">
-              {hydrated ? (running ? plan?.title ?? today.blurb : today.blurb) : "Préparation…"}
-            </h2>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-[#e4ebf3]">
-              {running
-                ? "Une série est déjà ouverte. Termine-la, ou abandonne-la depuis l’entraînement, avant d’en changer."
-                : "Une série différente selon le jour : questions, parfois un bloc, parfois un texte. Compte environ un quart d’heure."}
-            </p>
-            <button
-              type="button"
-              onClick={() => openPractice("daily")}
-              className="mt-6 min-h-12 w-fit rounded-full bg-[#f6f1e7] px-6 text-base font-semibold text-[#16324f]"
-            >
-              {running ? "Continuer la série" : "Commencer"}
+            <p className="text-sm font-semibold text-[#f0d7a4]">{hydrated ? advice.title : "Aujourd’hui"}</p>
+            <h2 className="mt-2 max-w-xl font-serif text-3xl leading-tight lg:text-5xl">{hydrated ? advice.button : "Préparation…"}</h2>
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-[#e4ebf3]">{hydrated ? advice.detail : "Une série différente selon le jour."}</p>
+            <button type="button" onClick={followAdvice} className="mt-6 min-h-12 w-fit rounded-full bg-[#f6f1e7] px-6 text-base font-semibold text-[#16324f]">
+              {hydrated ? advice.button : "Commencer"}
             </button>
           </article>
 
@@ -108,8 +129,23 @@ export function HomeScreen() {
         <section className="mt-8">
           <h2 className="font-serif text-3xl">Examen blanc</h2>
           <p className="mt-2 max-w-3xl text-base leading-relaxed text-[#5e584e]">
-            L’examen écrit garde la correction pour la fin. Le mode avec correction la montre à la fin de chaque partie, et la pause est possible.
+            L’examen écrit garde la correction pour la fin. Le mode avec correction la montre à la fin de chaque partie. Les questions ratées entrent ensuite dans les révisions. Aujourd’hui : {hydrated ? today.blurb : "…"}.
           </p>
+          {recent.length > 0 ? (
+            <ul className="mt-4 grid gap-2">
+              {recent.map((session) => {
+                const paper = EXAMS.find((item) => item.id === session.examId);
+                return (
+                  <li key={session.id}>
+                    <Link href={`/session/${session.id}/ergebnis`} className="flex min-h-12 items-center justify-between rounded-2xl border border-[#ddd4c4] bg-white px-4 text-[#1c1915]">
+                      <span className="font-semibold">{paper?.title ?? "Examen"}</span>
+                      <span className="text-sm text-[#5e584e]">{session.finishedAt ? new Date(session.finishedAt).toLocaleDateString("fr-FR") : ""}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
           <ul className="mt-4 grid gap-3 lg:grid-cols-3">
             {EXAMS.map((exam) => {
               const open = openExam === exam.id;

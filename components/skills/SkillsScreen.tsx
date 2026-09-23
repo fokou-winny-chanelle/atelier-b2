@@ -18,8 +18,8 @@ export function SkillsScreen() {
   return (
     <AppFrame>
       <main className="mx-auto w-full max-w-6xl px-4 pb-[var(--tab-clear,7rem)] pt-6 lg:px-10 lg:pb-16 lg:pt-10">
-        <h1 className="font-serif text-5xl leading-none lg:text-6xl">Compétences</h1>
-        <p className="mt-3 max-w-2xl text-base leading-relaxed text-[#5e584e]">Choisis une seule chose. L’application prépare la série et t’explique le geste, sans mode d’emploi.</p>
+        <h1 className="text-center font-serif text-4xl leading-none sm:text-left sm:text-5xl lg:text-6xl">Compétences</h1>
+        <p className="mx-auto mt-3 max-w-2xl text-center text-base leading-relaxed text-[#5e584e] sm:mx-0 sm:text-left">Choisis une seule chose. L’application prépare la série et t’explique le geste, sans mode d’emploi.</p>
         {running ? (
           <p className="mt-5 max-w-3xl rounded-3xl border border-[#ddd4c4] bg-white p-5 text-base leading-relaxed text-[#1c1915]">
             Une série est déjà ouverte.{" "}
@@ -39,7 +39,7 @@ export function SkillsScreen() {
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-[#5e584e]">{skill.detail}</p>
                   <button
                     type="button"
-                    className="mt-4 min-h-11 w-fit rounded-full bg-[#16324f] px-4 text-sm font-semibold text-[#f6f1e7] disabled:bg-[#3d5164] disabled:text-[#f6f1e7]"
+                    className="mt-4 min-h-11 w-full rounded-full bg-[#16324f] px-4 text-sm font-semibold text-[#f6f1e7] disabled:bg-[#3d5164] disabled:text-[#f6f1e7] sm:w-fit"
                     disabled={running}
                     onClick={() => {
                       start("skill", skill.id);

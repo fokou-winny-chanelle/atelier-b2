@@ -10,7 +10,7 @@ const LINKS = [
   { href: "/progres", label: "Progrès" },
 ];
 
-const NAV_HEIGHT = 64;
+const NAV_HEIGHT = 72;
 
 function useToolbarLift() {
   const [lift, setLift] = useState(0);
@@ -65,17 +65,17 @@ export function TabBar() {
         style={{ bottom: lift, paddingBottom: "env(safe-area-inset-bottom)" }}
         aria-label="Sections"
       >
-        <ul className="grid h-16 grid-cols-3">
+        <ul className="mx-auto flex h-[4.5rem] w-full max-w-md items-stretch justify-center">
           {LINKS.map((link) => {
             const on = pathname === link.href;
             return (
-              <li key={link.href} className="min-w-0">
+              <li key={link.href} className="flex min-w-0 flex-1">
                 <Link
                   href={link.href}
                   aria-current={on ? "page" : undefined}
-                  className={on ? "flex h-full items-center justify-center border-t-2 border-[#16324f] px-1 text-center text-sm font-semibold leading-tight text-[#16324f]" : "flex h-full items-center justify-center border-t-2 border-transparent px-1 text-center text-sm font-medium leading-tight text-[#3f3a33]"}
+                  className={on ? "flex w-full items-center justify-center border-t-2 border-[#16324f] px-2 text-center text-sm font-semibold text-[#16324f]" : "flex w-full items-center justify-center border-t-2 border-transparent px-2 text-center text-sm font-medium text-[#3f3a33]"}
                 >
-                  {link.label}
+                  <span className="block w-full text-center">{link.label}</span>
                 </Link>
               </li>
             );

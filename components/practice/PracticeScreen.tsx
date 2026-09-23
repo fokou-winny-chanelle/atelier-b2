@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { CriteriaMarks } from "@/components/coach/CriteriaMarks";
 import { useHydrated } from "@/components/useHydrated";
 import { locatePart, locateSpeaking, locateWriting } from "@/lib/catalog";
+import { SPEAKING_CRITERIA, WRITING_CRITERIA, type CriterionMark } from "@/lib/criteria";
+import { heldCount } from "@/lib/readiness";
 import { useLearnStore } from "@/lib/learn-store";
 import { speakGerman, type SpeakHandle } from "@/lib/speak";
 import { countWords } from "@/lib/scoring";
@@ -16,6 +19,28 @@ function filledBody(body: string, questions: Question[], answers: Record<string,
     const choice = question ? answers[question.id] : undefined;
     return choice ? choice.toUpperCase() : "_____";
   });
+}
+
+function seriesTally(plan: NonNullable<ReturnType<typeof useLearnStore.getState>["plan"]>): { asked: number; correct: number; wrong: number; misses: string[] } {
+  let correct = 0;
+  let wrong = 0;
+  const misses: string[] = [];
+  for (const step of plan.steps) {
+    if (step.kind !== "card" && step.kind !== "block") continue;
+    const located = locatePart(step.partId);
+    if (!located) continue;
+    const ids = step.kind === "card" && step.questionId ? [step.questionId] : located.part.questions.filter((question) => !question.example).map((question) => question.id);
+    for (const id of ids) {
+      const question = located.part.questions.find((item) => item.id === id);
+      if (!question || question.example || !plan.revealed[id]) continue;
+      if (plan.answers[id] === question.answer) correct += 1;
+      else {
+        wrong += 1;
+        if (misses.length < 3) misses.push(question.prompt);
+      }
+    }
+  }
+  return { asked: correct + wrong, correct, wrong, misses };
 }
 
 function letterOf(id: string): string {
@@ -48,13 +73,22 @@ export function PracticeScreen() {
     );
   }
   if (plan.finishedAt || plan.index >= plan.steps.length) {
-    const cards = plan.steps.filter((step) => step.kind === "card" || step.kind === "block");
+    const tally = seriesTally(plan);
     return (
       <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center px-6 py-16">
         <p className="text-sm font-semibold uppercase tracking-wider text-[#5c4318]">Série terminée</p>
         <h1 className="mt-2 font-serif text-5xl">{plan.title}</h1>
-        <p className="mt-4 text-lg leading-relaxed text-[#5e584e]">Les questions ratées reviendront dans les prochains jours, pas toutes demain en bloc.</p>
-        <p className="mt-2 text-[#5e584e]">{cards.length ? "Les réponses sont enregistrées sur cet appareil." : "Tu peux enchaîner avec autre chose."}</p>
+        <p className="mt-4 text-lg leading-relaxed text-[#1c1915]">
+          {tally.asked === 0 ? "Rien à compter sur cette série." : `${tally.correct} juste${tally.correct > 1 ? "s" : ""} · ${tally.wrong} ratée${tally.wrong > 1 ? "s" : ""}.`}
+        </p>
+        {tally.misses.length > 0 ? (
+          <ul className="mt-4 grid gap-2">
+            {tally.misses.map((miss) => (
+              <li key={miss} className="rounded-2xl bg-white px-4 py-3 text-[#1c1915]">{miss}</li>
+            ))}
+          </ul>
+        ) : null}
+        <p className="mt-4 text-[#5e584e]">Chaque erreur revient demain. Une réussite s’espace.</p>
         <Link href="/" onClick={() => close()} className="mt-8 inline-flex min-h-12 w-fit items-center justify-center rounded-full bg-[#16324f] px-6 font-semibold text-[#f6f1e7]">
           Retour à aujourd’hui
         </Link>
@@ -68,20 +102,21 @@ export function PracticeScreen() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-[#f3efe6] text-[#1c1915]">
-      <header className="flex shrink-0 items-center justify-between gap-3 bg-[#16324f] px-4 py-3 text-[#f6f1e7] lg:px-8">
-        <button type="button" className="min-h-11 text-sm font-semibold text-[#f6f1e7] disabled:text-[#9eb0c2]" onClick={back} disabled={plan.index === 0}>
-          Précédent
-        </button>
-        <p className="min-w-0 truncate text-center text-sm text-[#e4ebf3]">
-          {plan.title} · {progress}
-        </p>
-        <div className="flex gap-2">
-          <Link href="/" className="inline-flex min-h-11 items-center rounded-full border border-[#f6f1e7]/50 px-4 text-sm font-semibold text-[#f6f1e7]">
+      <header className="shrink-0 bg-[#16324f] px-3 py-2 text-[#f6f1e7] lg:px-8">
+        <div className="mx-auto grid w-full max-w-3xl grid-cols-3 items-center">
+          <button type="button" className="min-h-11 justify-self-start px-2 text-sm font-semibold text-[#f6f1e7] disabled:text-[#9eb0c2]" onClick={back} disabled={plan.index === 0}>
+            Précédent
+          </button>
+          <p className="text-center text-sm font-semibold text-[#f6f1e7]">{progress}</p>
+          <Link href="/" className="min-h-11 justify-self-end px-2 py-2 text-sm font-semibold text-[#f6f1e7]">
             Pause
           </Link>
+        </div>
+        <p className="pb-1 text-center text-xs text-[#e4ebf3]">{plan.title}</p>
+        <p className="pb-1 text-center">
           <button
             type="button"
-            className="min-h-11 rounded-full px-3 text-sm font-semibold text-[#f0d7a4]"
+            className="min-h-11 px-3 text-sm font-semibold text-[#f0d7a4]"
             onClick={() => {
               close();
               router.push("/");
@@ -89,7 +124,7 @@ export function PracticeScreen() {
           >
             Abandonner
           </button>
-        </div>
+        </p>
       </header>
       {step.kind === "card" || step.kind === "block" ? (
         <QuestionStep
@@ -137,6 +172,7 @@ function QuestionStep({
 }) {
   const located = locatePart(partId);
   const scroller = useRef<HTMLDivElement>(null);
+  const answersPane = useRef<HTMLDivElement>(null);
   useEffect(() => {
     scroller.current?.scrollTo({ top: 0 });
   }, [questionId, partId]);
@@ -151,6 +187,7 @@ function QuestionStep({
       : part.stimuli;
   const shown = questionId ? questions : part.questions;
   const open = questions.some((question) => !revealed[question.id]);
+  const wrongCount = questions.filter((question) => !question.example && revealed[question.id] && answers[question.id] !== question.answer).length;
 
   function select(questionIdToSet: string, choiceId: string) {
     const reserved = part.questions.filter((item) => item.example).map((item) => item.answer);
@@ -180,7 +217,12 @@ function QuestionStep({
           );
         })}
       </div>
-      <div className="max-h-[55dvh] overflow-y-auto border-t border-[#ddd4c4] bg-white px-4 py-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:max-h-none lg:border-t-0 lg:border-l lg:px-6 lg:py-8">
+      <div ref={answersPane} className="max-h-[55dvh] overflow-y-auto border-t border-[#ddd4c4] bg-white px-4 py-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:max-h-none lg:border-t-0 lg:border-l lg:px-6 lg:py-8">
+        {!open ? (
+          <p className={wrongCount === 0 ? "mb-3 rounded-2xl bg-[#e5f3eb] px-4 py-3 font-semibold text-[#145c38]" : "mb-3 rounded-2xl bg-[#f8e8e6] px-4 py-3 font-semibold text-[#8d342e]"}>
+            {wrongCount === 0 ? "Juste. Lis la raison, elle sert la prochaine fois." : `${wrongCount} à retenir. La bonne lettre est en vert, avec la raison.`}
+          </p>
+        ) : null}
         {shown.map((question) => (
           <ChoiceBlock key={question.id} question={question} selected={answers[question.id]} shown={Boolean(revealed[question.id])} onSelect={select} />
         ))}
@@ -189,13 +231,16 @@ function QuestionStep({
             type="button"
             className="mt-2 min-h-12 w-full rounded-full bg-[#16324f] font-semibold text-[#f6f1e7] disabled:bg-[#3d5164] disabled:text-[#f6f1e7]"
             disabled={questions.some((question) => !question.example && !answers[question.id])}
-            onClick={() => onReveal(questions.filter((question) => !question.example).map((question) => question.id))}
+            onClick={() => {
+              onReveal(questions.filter((question) => !question.example).map((question) => question.id));
+              window.setTimeout(() => answersPane.current?.scrollTo({ top: 0 }), 0);
+            }}
           >
             Vérifier
           </button>
         ) : (
           <button type="button" className="mt-2 min-h-12 w-full rounded-full bg-[#16324f] font-semibold text-[#f6f1e7]" onClick={onNext}>
-            Continuer
+            J’ai compris
           </button>
         )}
       </div>
@@ -215,7 +260,7 @@ function ChoiceBlock({
   onSelect: (questionId: string, choiceId: string) => void;
 }) {
   return (
-    <fieldset className="mb-3" disabled={question.example || shown}>
+    <fieldset className="mb-3">
       <legend className="mb-2 text-base font-semibold">{question.example ? "Exemple" : question.prompt}</legend>
       <div className="grid gap-2">
         {question.choices.map((choice) => {
@@ -227,7 +272,7 @@ function ChoiceBlock({
               key={choice.id}
               className={`flex min-h-12 items-start gap-3 rounded-2xl border px-3 py-2 ${right ? "border-[#1d6b45] bg-[#e5f3eb]" : wrong ? "border-[#8d342e] bg-[#f8e8e6]" : on ? "border-[#16324f] bg-[#e7f0f8]" : "border-stone-200"}`}
             >
-              <input className="mt-1" type="radio" name={question.id} checked={on} onChange={() => onSelect(question.id, choice.id)} />
+              <input className="mt-1" type="radio" name={question.id} checked={on} disabled={question.example || shown} onChange={() => onSelect(question.id, choice.id)} />
               <span>
                 <span className="mr-2 font-semibold">{letterOf(choice.id)}</span>
                 {choice.text}
@@ -296,9 +341,19 @@ function ClipPlayer({
 
 function WriteStep({ taskId, value, onChange, onNext }: { taskId: string; value: string; onChange: (id: string, value: string) => void; onNext: () => void }) {
   const located = locateWriting(taskId);
+  const saveProduction = useLearnStore((state) => state.saveProduction);
+  const [marks, setMarks] = useState<Record<string, CriterionMark | undefined>>({});
+  const [draft, setDraft] = useState(value);
+  const [seenTask, setSeenTask] = useState(taskId);
+  const draftTimer = useRef(0);
+  if (taskId !== seenTask) {
+    setSeenTask(taskId);
+    setDraft(value);
+  }
+  useEffect(() => () => window.clearTimeout(draftTimer.current), []);
   if (!located) return null;
   const task: WritingTask = located.task;
-  const words = countWords(value);
+  const words = countWords(draft);
   return (
     <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 overflow-y-auto px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:grid-cols-2 lg:overflow-hidden lg:px-10">
       <div className="lg:overflow-y-auto lg:pr-4">
@@ -312,11 +367,40 @@ function WriteStep({ taskId, value, onChange, onNext }: { taskId: string; value:
         <p className="mt-4 max-w-xl text-sm leading-relaxed text-[#5e584e]">{task.coach}</p>
       </div>
       <div className="flex min-h-0 flex-col">
-        <textarea value={value} onChange={(event) => onChange(taskId, event.target.value)} className="min-h-64 w-full flex-1 rounded-3xl border border-[#c9bfae] bg-white p-5 text-lg leading-relaxed text-[#1c1915]" />
+        <textarea
+          value={draft}
+          onChange={(event) => {
+            const next = event.target.value;
+            setDraft(next);
+            window.clearTimeout(draftTimer.current);
+            draftTimer.current = window.setTimeout(() => onChange(taskId, next), 200);
+          }}
+          onBlur={() => onChange(taskId, draft)}
+          className="min-h-64 w-full flex-1 rounded-3xl border border-[#c9bfae] bg-white p-5 text-lg leading-relaxed text-[#1c1915]"
+        />
         <p className={words >= task.minWords ? "mt-2 font-semibold text-[#145c38]" : "mt-2 text-[#5e584e]"}>
           {words} mots · au moins {task.minWords}
         </p>
-        <button type="button" className="mt-3 min-h-12 rounded-full bg-[#16324f] font-semibold text-[#f6f1e7] disabled:bg-[#3d5164] disabled:text-[#f6f1e7]" disabled={words < task.minWords} onClick={onNext}>
+        <CriteriaMarks items={WRITING_CRITERIA} value={marks} onChange={(id, mark) => setMarks((current) => ({ ...current, [id]: mark }))} />
+        <p className="mt-2 text-sm text-[#5e584e]">Cette relecture n’est pas une note d’examinateur. Elle dit si le texte tient les quatre critères du Goethe.</p>
+        <button
+          type="button"
+          className="mt-3 min-h-12 rounded-full bg-[#16324f] font-semibold text-[#f6f1e7] disabled:bg-[#3d5164] disabled:text-[#f6f1e7]"
+          disabled={words < task.minWords}
+          onClick={() => {
+            saveProduction({
+              kind: "schreiben",
+              taskId,
+              examId: located.exam.id,
+              at: Date.now(),
+              words,
+              minWords: task.minWords,
+              held: heldCount(marks, WRITING_CRITERIA.map((item) => item.id)),
+              asked: WRITING_CRITERIA.length,
+            });
+            onNext();
+          }}
+        >
           J’ai fini ce texte
         </button>
       </div>
@@ -326,8 +410,25 @@ function WriteStep({ taskId, value, onChange, onNext }: { taskId: string; value:
 
 function SpeakStep({ taskId, value, onChange, onNext }: { taskId: string; value: string; onChange: (id: string, value: string) => void; onNext: () => void }) {
   const located = locateSpeaking(taskId);
+  const saveProduction = useLearnStore((state) => state.saveProduction);
+  const [marks, setMarks] = useState<Record<string, CriterionMark | undefined>>({});
+  const [left, setLeft] = useState<number | null>(null);
+  const [draft, setDraft] = useState(value);
+  const [seenTask, setSeenTask] = useState(taskId);
+  const draftTimer = useRef(0);
+  if (taskId !== seenTask) {
+    setSeenTask(taskId);
+    setDraft(value);
+  }
+  useEffect(() => () => window.clearTimeout(draftTimer.current), []);
+  useEffect(() => {
+    if (left == null || left <= 0) return;
+    const timer = window.setTimeout(() => setLeft(left - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [left]);
   if (!located) return null;
   const task: SpeakingTask = located.task;
+  const clock = left == null ? `${task.minutes}:00` : `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
   return (
     <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 overflow-y-auto px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:grid-cols-2 lg:overflow-hidden lg:px-10">
       <div className="lg:overflow-y-auto lg:pr-4">
@@ -341,8 +442,42 @@ function SpeakStep({ taskId, value, onChange, onNext }: { taskId: string; value:
         <p className="mt-4 max-w-xl text-sm leading-relaxed text-[#5e584e]">{task.coach}</p>
       </div>
       <div className="flex min-h-0 flex-col">
-        <textarea value={value} onChange={(event) => onChange(taskId, event.target.value)} placeholder="Notes, pas le discours" className="min-h-48 w-full flex-1 rounded-3xl border border-[#c9bfae] bg-white p-5 text-lg text-[#1c1915]" />
-        <button type="button" className="mt-3 min-h-12 rounded-full bg-[#16324f] font-semibold text-[#f6f1e7]" onClick={onNext}>
+        <textarea
+          value={draft}
+          placeholder="Notes, pas le discours"
+          onChange={(event) => {
+            const next = event.target.value;
+            setDraft(next);
+            window.clearTimeout(draftTimer.current);
+            draftTimer.current = window.setTimeout(() => onChange(taskId, next), 200);
+          }}
+          onBlur={() => onChange(taskId, draft)}
+          className="min-h-48 w-full flex-1 rounded-3xl border border-[#c9bfae] bg-white p-5 text-lg text-[#1c1915]"
+        />
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <p className="font-serif text-3xl tabular-nums text-[#16324f]">{clock}</p>
+          <button type="button" className="min-h-11 rounded-full border border-[#c9bfae] bg-white px-4 text-sm font-semibold" onClick={() => setLeft(left == null || left <= 0 ? task.minutes * 60 : null)}>
+            {left != null && left > 0 ? "Arrêter" : "Lancer le temps de parole"}
+          </button>
+        </div>
+        <CriteriaMarks items={SPEAKING_CRITERIA} value={marks} onChange={(id, mark) => setMarks((current) => ({ ...current, [id]: mark }))} />
+        <button
+          type="button"
+          className="mt-3 min-h-12 rounded-full bg-[#16324f] font-semibold text-[#f6f1e7]"
+          onClick={() => {
+            saveProduction({
+              kind: "sprechen",
+              taskId,
+              examId: located.exam.id,
+              at: Date.now(),
+              words: countWords(draft),
+              minWords: 0,
+              held: heldCount(marks, SPEAKING_CRITERIA.map((item) => item.id)),
+              asked: SPEAKING_CRITERIA.length,
+            });
+            onNext();
+          }}
+        >
           J’ai parlé
         </button>
       </div>

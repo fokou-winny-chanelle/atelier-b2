@@ -27,8 +27,15 @@
   html, body { margin: 0; min-height: 100%; }
   button, input, textarea, select { font: inherit; }
   input, textarea { color: inherit; }
-  button { cursor: pointer; }
+  button, a, label { -webkit-tap-highlight-color: rgba(22, 50, 79, 0.16); }
+  button { cursor: pointer; touch-action: manipulation; }
   :focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+}
+
+button:not(:disabled):active,
+a:active,
+label:active {
+  filter: brightness(0.9);
 }
 
 .boot, .boot-card { padding: 4rem 1.5rem; }
@@ -91,10 +98,10 @@
 .gutter { width: 12px; flex: none; cursor: col-resize; background: linear-gradient(90deg, transparent, #d9d0c2, transparent); }
 .instruction { font-size: 1.02rem; }
 .hint-time { font-size: 0.88rem; }
-.block { margin: 0 0 1.1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--line); }
-.block h2 { font-family: var(--font-serif), Georgia, serif; font-size: 1.35rem; margin: 0.15rem 0 0.4rem; }
+.passage { margin: 0 0 1.1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--line); }
+.passage h2 { font-family: var(--font-serif), Georgia, serif; font-size: 1.35rem; margin: 0.15rem 0 0.4rem; }
 .body { font-family: var(--font-serif), Georgia, serif; font-size: 1.08rem; line-height: 1.55; white-space: pre-wrap; }
-.block.is-marking { cursor: text; outline: 1px dashed var(--brass); }
+.passage.is-marking { cursor: text; outline: 1px dashed var(--brass); }
 mark.ink { background: #ffe08a; color: inherit; cursor: pointer; }
 .gap { display: inline-flex; min-width: 1.6rem; justify-content: center; margin: 0 0.15rem; padding: 0 0.35rem; border-bottom: 2px solid var(--navy); font-family: var(--font-sans), sans-serif; font-weight: 700; }
 .gap.is-filled { background: #e7f0f8; }
@@ -106,7 +113,7 @@ mark.ink { background: #ffe08a; color: inherit; cursor: pointer; }
 .q-top p { margin: 0.2rem 0 0.7rem; font-size: 1.05rem; }
 .flag { border: 1px solid #c9a15a; background: var(--flag-bg); color: #5c4318; border-radius: 999px; padding: 0.25rem 0.6rem; }
 .choices { display: grid; gap: 0.35rem; }
-.choice { display: grid; grid-template-columns: auto auto 1fr; gap: 0.55rem; align-items: start; padding: 0.45rem 0.5rem; border-radius: 10px; border: 1px solid transparent; }
+.choice { display: grid; grid-template-columns: auto auto 1fr; gap: 0.55rem; align-items: start; padding: 0.45rem 0.5rem; border-radius: 10px; border: 1px solid transparent; cursor: pointer; }
 .choice:hover { background: #f6f3ec; }
 .choice.is-on { background: #e7f0f8; border-color: #b7cfe4; }
 .choice input { margin-top: 0.35rem; }
@@ -129,9 +136,15 @@ mark.ink { background: #ffe08a; color: inherit; cursor: pointer; }
 
 .sheet { position: fixed; z-index: 30; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(32rem, calc(100% - 2rem)); max-height: min(80dvh, 44rem); overflow: auto; border: 0; border-radius: 16px; padding: 1.1rem 1.2rem 1.3rem; background: var(--sheet); box-shadow: 0 24px 80px rgba(22, 24, 20, 0.28); }
 .sheet.wide { width: min(46rem, calc(100% - 2rem)); }
+.help-phone { display: grid; }
+.help-desk { display: none; }
+@media (min-width: 768px) {
+  .help-phone { display: none; }
+  .help-desk { display: grid; }
+}
 .room:has(.sheet[open])::before { content: ""; position: fixed; inset: 0; background: rgba(22, 24, 20, 0.46); z-index: 25; }
 .help { display: grid; gap: 0.55rem; padding-left: 1.1rem; }
-.grid { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.overview-cells { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .cell { width: 2.75rem; height: 2.75rem; border-radius: 8px; border: 1px solid var(--line); background: white; color: var(--ink); }
 .cell.is-done { background: var(--ok-bg); border-color: var(--ok); color: #145c38; }
 .cell.is-flag { background: var(--flag-bg); border-color: var(--flag); color: #6a4a08; }
@@ -173,9 +186,23 @@ mark.ink { background: #ffe08a; color: inherit; cursor: pointer; }
   .gutter { display: none; }
   .pane-texte .questions { display: none; }
   .pane-questions .stimulus { display: none; }
-  .mast, .dock { align-items: flex-start; }
+  .mast, .dock, .dock-left, .dock-tools, .teils { align-items: center; justify-content: center; }
+  .mast-brand, .mast-side { flex: 1 1 100%; justify-content: center; flex-wrap: wrap; min-width: 0; }
+  .mast-brand { text-align: center; }
+  .mast .eyebrow, .mast-brand strong { overflow-wrap: anywhere; }
   .phase-trail { display: none; }
   .dock { padding-bottom: max(0.55rem, env(safe-area-inset-bottom)); }
+  .sheet, .sheet.wide {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: none;
+    max-height: min(82dvh, 40rem);
+    transform: none;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: max(1.2rem, env(safe-area-inset-bottom));
+  }
 }
 @media print {
   .results-head .row, .home { display: none; }

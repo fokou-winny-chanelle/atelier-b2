@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bandFor, countWords, gradeQuestions } from "./scoring";
+import { bandFor, checkpointPoints, countWords, gradeQuestions } from "./scoring";
 import type { Question } from "./types";
 
 const questions: Question[] = [
@@ -54,6 +54,15 @@ describe("gradeQuestions", () => {
     const result = gradeQuestions(questions, { q1: "a", q2: "b" });
     expect(result.points).toBe(100);
     expect(result.passed).toBe(true);
+  });
+});
+
+describe("checkpointPoints", () => {
+  it("follows the Goethe table for a full module of 30 items", () => {
+    expect(checkpointPoints(30, 30)).toBe(100);
+    expect(checkpointPoints(18, 30)).toBe(60);
+    expect(checkpointPoints(17, 30)).toBe(57);
+    expect(checkpointPoints(0, 30)).toBe(0);
   });
 });
 

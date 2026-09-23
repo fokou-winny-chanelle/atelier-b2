@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { browserStorage } from "./persist-storage";
 import type { HighlightMark, Mode, ModuleId, Session } from "./types";
 
 interface CreateInput {
@@ -220,6 +221,6 @@ export const useExamStore = create<ExamState>()(
           return { sessions };
         }),
     }),
-    { name: "atelier-b2-v1", version: 1 },
+    { name: "atelier-b2-v1", version: 1, storage: browserStorage() },
   ),
 );

@@ -2,9 +2,11 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { browserStorage } from "./persist-storage";
 import { poolBlocks, poolCards, poolSpeaks, poolWrites } from "./catalog";
 import { EXAMS } from "./exams";
 import { buildPlan, dayKey, nextMemory, type MemoryItem, type PlanStep } from "./plan";
+import type { MockModuleScore, MockRecord, ProductionRecord } from "./readiness";
 
 export interface ActivePlan {
   id: string;
@@ -24,8 +26,14 @@ interface LearnState {
   memory: Record<string, MemoryItem>;
   days: string[];
   plan: ActivePlan | null;
+  mocks: MockRecord[];
+  productions: ProductionRecord[];
+  absorbed: string[];
   preview: (kind: "daily" | "review" | "skill", skill?: string) => { title: string; blurb: string; count: number };
   start: (kind: "daily" | "review" | "skill", skill?: string) => void;
+  startMissed: (questionIds: string[]) => boolean;
+  absorbExam: (input: { sessionId: string; examId: string; at: number; modules: MockModuleScore[]; items: { questionId: string; correct: boolean }[] }) => void;
+  saveProduction: (input: Omit<ProductionRecord, "id">) => void;
   answer: (questionId: string, choiceId: string) => void;
   reveal: (questionIds: string[]) => void;
   bumpAudio: (audioId: string) => void;
@@ -69,6 +77,9 @@ export const useLearnStore = create<LearnState>()(
       memory: {},
       days: [],
       plan: null,
+      mocks: [],
+      productions: [],
+      absorbed: [],
       preview: (kind, skill) => {
         const built = buildPlan({
           now: Date.now(),
@@ -85,6 +96,46 @@ export const useLearnStore = create<LearnState>()(
       start: (kind, skill) =>
         set((state) => ({
           plan: makePlan(kind, state.memory, skill, kind === "daily" && state.plan?.finishedAt ? String(state.days.length) : undefined),
+        })),
+      startMissed: (questionIds) => {
+        const state = get();
+        if (state.plan && !state.plan.finishedAt) return false;
+        const steps = stepsForMissed(questionIds);
+        if (steps.length === 0) return false;
+        set({
+          plan: {
+            id: crypto.randomUUID(),
+            kind: "review",
+            title: "Erreurs de l’examen",
+            blurb: "Les questions ratées au blanc, puis la correction.",
+            steps,
+            index: 0,
+            answers: {},
+            revealed: {},
+            audioPlays: {},
+            startedAt: Date.now(),
+            finishedAt: null,
+          },
+        });
+        return true;
+      },
+      absorbExam: (input) =>
+        set((state) => {
+          if (state.absorbed.includes(input.sessionId)) return state;
+          const memory = { ...state.memory };
+          for (const item of input.items) {
+            memory[item.questionId] = nextMemory(memory[item.questionId], item.correct, input.at);
+          }
+          const mock: MockRecord = { sessionId: input.sessionId, examId: input.examId, at: input.at, modules: input.modules };
+          return {
+            memory,
+            absorbed: [...state.absorbed, input.sessionId].slice(-80),
+            mocks: [...state.mocks, mock].slice(-40),
+          };
+        }),
+      saveProduction: (input) =>
+        set((state) => ({
+          productions: [...state.productions, { ...input, id: crypto.randomUUID() }].slice(-40),
         })),
       answer: (questionId, choiceId) =>
         set((state) =>
@@ -150,9 +201,46 @@ export const useLearnStore = create<LearnState>()(
         }),
       close: () => set({ plan: null }),
     }),
-    { name: "atelier-b2-learn-v1", version: 1 },
+    {
+      name: "atelier-b2-learn-v1",
+      version: 2,
+      storage: browserStorage(),
+      migrate: (persisted) => {
+        const state = persisted as Partial<LearnState>;
+        return {
+          memory: state.memory ?? {},
+          days: state.days ?? [],
+          plan: state.plan ?? null,
+          mocks: state.mocks ?? [],
+          productions: state.productions ?? [],
+          absorbed: state.absorbed ?? [],
+        };
+      },
+    },
   ),
 );
+
+function stepsForMissed(questionIds: string[]): PlanStep[] {
+  const cards = poolCards();
+  const blocks = poolBlocks();
+  const steps: PlanStep[] = [];
+  const seen = new Set<string>();
+  for (const questionId of questionIds) {
+    const card = cards.find((item) => item.questionId === questionId);
+    if (card) {
+      if (seen.has(questionId)) continue;
+      seen.add(questionId);
+      steps.push({ kind: "card", questionId, partId: card.partId, examId: card.examId });
+      continue;
+    }
+    const block = blocks.find((item) => item.questionIds.includes(questionId));
+    if (block && !steps.some((step) => step.kind === "block" && step.partId === block.partId)) {
+      steps.push({ kind: "block", partId: block.partId, examId: block.examId });
+    }
+    if (steps.length >= 12) break;
+  }
+  return steps.slice(0, 12);
+}
 
 function findAnswer(questionId: string): string | undefined {
   for (const exam of EXAMS) {

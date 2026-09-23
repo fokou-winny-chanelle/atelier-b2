@@ -1,18 +1,42 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useHydrated } from "@/components/useHydrated";
 import { getExam } from "@/lib/exams";
+import { useLearnStore } from "@/lib/learn-store";
 import { allScoredQuestions, bandFor, countWords, gradeQuestions, scoredQuestions } from "@/lib/scoring";
 import { useExamStore } from "@/lib/store";
 import type { ClosedModuleId, Exam, Session } from "@/lib/types";
 import { MODULE_LABEL } from "@/lib/types";
 
 export function ResultsScreen({ sessionId }: { sessionId: string }) {
+  const router = useRouter();
   const hydrated = useHydrated();
   const session = useExamStore((state) => state.sessions[sessionId]);
   const toggleWritingCheck = useExamStore((state) => state.toggleWritingCheck);
+  const absorbExam = useLearnStore((state) => state.absorbExam);
+  const startMissed = useLearnStore((state) => state.startMissed);
+  const plan = useLearnStore((state) => state.plan);
   const exam = session ? getExam(session.examId) : undefined;
+  const running = Boolean(plan && !plan.finishedAt);
+
+  useEffect(() => {
+    if (!hydrated || !session?.submitted || !exam) return;
+    const phases = session.phases.filter((phase): phase is "lesen" | "hoeren" => phase === "lesen" || phase === "hoeren");
+    const modules = phases.map((phase) => {
+      const grade = gradeQuestions(allScoredQuestions(exam[phase].parts), session.answers);
+      return { id: phase, points: grade.points, passed: grade.passed };
+    });
+    const items = phases.flatMap((phase) =>
+      allScoredQuestions(exam[phase].parts).map((question) => ({
+        questionId: question.id,
+        correct: session.answers[question.id] === question.answer,
+      })),
+    );
+    absorbExam({ sessionId: session.id, examId: exam.id, at: session.finishedAt ?? Date.now(), modules, items });
+  }, [absorbExam, exam, hydrated, session]);
 
   if (!hydrated) return <p className="boot">Résultat…</p>;
   if (!session || !exam) {
@@ -25,6 +49,11 @@ export function ResultsScreen({ sessionId }: { sessionId: string }) {
   }
 
   const scoredPhases = session.phases.filter((phase): phase is ClosedModuleId => phase === "lesen" || phase === "hoeren");
+  const missed = scoredPhases.flatMap((phase) =>
+    allScoredQuestions(exam[phase].parts)
+      .filter((question) => session.answers[question.id] !== question.answer)
+      .map((question) => question.id),
+  );
 
   return (
     <main className="results">
@@ -62,9 +91,30 @@ export function ResultsScreen({ sessionId }: { sessionId: string }) {
         })}
       </section>
       <p className="fine">
-        Au Goethe-Zertifikat, un module est réussi à partir de 60 points sur 100. Cette conversion est une règle de
-        simulation : une réponse juste vaut la même part du total.
+        Chaque module se réussit seul à 60 sur 100. Pour Lesen et Hören, 30 réponses justes font 100, et 18 font 60.
+        Un bon module ne rattrape pas un module raté. Les questions ratées ici reviennent dans l’entraînement.
       </p>
+      <div className="row">
+        {running ? (
+          <Link href="/pratique" className="text-btn">
+            Reprendre la série ouverte
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className="primary"
+            onClick={() => {
+              if (missed.length === 0 || !startMissed(missed)) {
+                router.push("/");
+                return;
+              }
+              router.push("/pratique");
+            }}
+          >
+            {missed.length === 0 ? "Retour à aujourd’hui" : `S’entraîner sur ${missed.length} erreur${missed.length > 1 ? "s" : ""}`}
+          </button>
+        )}
+      </div>
 
       {scoredPhases.map((phase) => (
         <ModuleReview key={phase} phase={phase} exam={exam} session={session} />
