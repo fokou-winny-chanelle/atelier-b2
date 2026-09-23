@@ -1,0 +1,5 @@
+*.pdf
+_pdf_preview
+node_modules
+.next
+npm-debug.log

@@ -1,0 +1,368 @@
+import type { Choice, Exam, Question } from "../types";
+
+function q(id: string, number: number, prompt: string, choices: Choice[], answer: string, explanation: string, example = false): Question {
+  return { id, number, prompt, choices, answer, explanation, example };
+}
+
+const people: Choice[] = [
+  { id: "a", text: "Selma" },
+  { id: "b", text: "Igor" },
+  { id: "c", text: "Marlene" },
+  { id: "d", text: "Timo" },
+];
+
+const sentences: Choice[] = [
+  { id: "a", text: "Abwässer aus Fabriken hatten den Sauerstoff im Wasser stark gesenkt." },
+  { id: "b", text: "Heute brüten dort wieder Vögel, die jahrzehntelang verschwunden waren." },
+  { id: "c", text: "Ein sauberer Fluss ist deshalb automatisch ein sicherer Badeort." },
+  { id: "d", text: "An heißen Tagen kühlt das Wasser die angrenzenden Straßen spürbar." },
+  { id: "e", text: "Ein flacher Weg führt jetzt bis ans Wasser, nicht mehr nur oben an der Mauer entlang." },
+  { id: "f", text: "Wer den Fluss nur als Abkürzung für den Autoverkehr sieht, übersieht diesen Gewinn." },
+  { id: "g", text: "Die Böschung braucht Platz, sonst trägt das nächste Hochwasser den Weg weg." },
+  { id: "h", text: "Deshalb wurde der gesamte Schiffsverkehr auf dem Fluss verboten." },
+];
+
+const opinions: Choice[] = [
+  { id: "a", text: "a — Elif, Hagen" },
+  { id: "b", text: "b — Gerd, Wien" },
+  { id: "c", text: "c — Nuria, Leipzig" },
+  { id: "d", text: "d — Hannes, Basel" },
+  { id: "e", text: "e — Klara, Erfurt" },
+  { id: "f", text: "f — Samir, Köln" },
+  { id: "g", text: "g — Petra, Oldenburg" },
+  { id: "h", text: "h — Luis, Heidelberg" },
+];
+
+const headings: Choice[] = [
+  { id: "a", text: "a Ruhezeiten" },
+  { id: "b", text: "b Gäste" },
+  { id: "c", text: "c Kaution" },
+  { id: "d", text: "d Gemeinschaftsküche" },
+  { id: "e", text: "e Internet" },
+  { id: "f", text: "f Schlüsselverlust" },
+  { id: "g", text: "g Haustiere" },
+  { id: "h", text: "h Zimmerwechsel" },
+];
+
+const yn: Choice[] = [
+  { id: "r", text: "Richtig" },
+  { id: "f", text: "Falsch" },
+];
+const abc = (a: string, b: string, c: string): Choice[] => [
+  { id: "a", text: a },
+  { id: "b", text: b },
+  { id: "c", text: c },
+];
+const speakers: Choice[] = [
+  { id: "a", text: "Frau Deng, Veranstalterin" },
+  { id: "b", text: "Herr Bloch, Anwohner" },
+  { id: "c", text: "Frau Idris, Händlerin" },
+];
+
+export const modellsatz03: Exam = {
+  id: "ms-03",
+  number: 3,
+  title: "Modellsatz 3",
+  subtitle: "Handy, Fluss, Stadtfest",
+  lesen: {
+    id: "lesen",
+    label: "Lesen",
+    durationMinutes: 65,
+    parts: [
+      {
+        id: "ms3-l1",
+        title: "Teil 1",
+        suggestedMinutes: 18,
+        exclusive: false,
+        instruction:
+          "Sie lesen vier Meinungen zum Umgang mit dem Smartphone. Auf welche Person treffen die Aussagen zu? Jede Person kann mehrmals gewählt werden.",
+        clips: [],
+        stimuli: [
+          { id: "ms3-a", kicker: "a", title: "Selma", body: "Ich lege das Handy abends in eine Schachtel im Flur, nicht auf den Nachttisch. Wenn es neben dem Bett liegt, lese ich noch Nachrichten, obwohl ich schlafen wollte. Die Schachtel ist kein Verbot für den Tag. Bei der Arbeit brauche ich das Gerät, und ich will erreichbar bleiben, wenn die Kita anruft." },
+          { id: "ms3-b", kicker: "b", title: "Igor", body: "Ich habe die farbigen Punkte an den App-Symbolen ausgeschaltet. Vorher habe ich bei jedem roten Kreis sofort geöffnet, auch mitten im Gespräch. Seitdem merke ich erst nach einer Stunde, dass jemand geschrieben hat, und das ist genau der Punkt. Meine Freunde waren zuerst sauer. Inzwischen sagen sie, ich sei in Gesprächen wieder anwesend." },
+          { id: "ms3-c", kicker: "c", title: "Marlene", body: "Ohne Smartphone organisiere ich weder die Schicht noch den Stundenplan meiner Tochter. Wer von digitaler Auszeit redet, hat oft einen Beruf, in dem andere die Erreichbarkeit übernehmen. Ich würde das Gerät gern seltener sehen. Realistisch ist bei mir nur eine feste halbe Stunde nach dem Abendessen, in der es in der Schublade liegt, nicht der ganze Abend." },
+          { id: "ms3-d", kicker: "d", title: "Timo", body: "Ich habe mein Smartphone gegen ein einfaches Telefon getauscht und bereue es nicht. Karten, Fahrplan und Banking erledige ich am Laptop zu Hause. Unterwegs fehlt mir manchmal eine Funktion, zum Beispiel das Foto von der Tafel in der Vorlesung. Dafür bin ich in der Bahn nicht mehr in einem endlosen Strom aus kurzen Filmen." },
+        ],
+        questions: [
+          q("ms3-l-0", 0, "Wer will tagsüber erreichbar bleiben, besonders für die Kita?", people, "a", "Selma veut rester joignable si la crèche appelle. Le téléphone quitte seulement la table de nuit.", true),
+          q("ms3-l-1", 1, "Wer bringt das Handy absichtlich aus dem Schlafzimmer?", people, "a", "Selma met le téléphone dans une boîte dans le couloir, pas sur la table de nuit.", false),
+          q("ms3-l-2", 2, "Wer hat Hinweise auf neue Nachrichten ausgeschaltet?", people, "b", "Igor a désactivé les pastilles de couleur sur les applications.", false),
+          q("ms3-l-3", 3, "Wer wirkt auf Freundinnen und Freunde im Gespräch wieder aufmerksamer?", people, "b", "Ses amis disent qu’il est de nouveau présent dans la conversation.", false),
+          q("ms3-l-4", 4, "Wer hält eine völlige digitale Auszeit für unrealistisch im eigenen Beruf?", people, "c", "Marlene dit que son travail et l’emploi du temps de sa fille rendent une vraie pause irréaliste.", false),
+          q("ms3-l-5", 5, "Wer schafft nur ein kurzes, festes Fenster ohne Handy am Abend?", people, "c", "Marlene vise une demi-heure après le dîner, pas toute la soirée.", false),
+          q("ms3-l-6", 6, "Wer nutzt unterwegs kein Smartphone mehr?", people, "d", "Timo l’a remplacé par un téléphone simple. Le reste se fait sur l’ordinateur à la maison.", false),
+          q("ms3-l-7", 7, "Wer vermisst unterwegs eine einzelne praktische Funktion?", people, "d", "Il regrette parfois la photo du tableau en cours, pas le flux de vidéos.", false),
+          q("ms3-l-8", 8, "Wer hat das Gerät früher auch mitten in einem Gespräch geöffnet?", people, "b", "Igor ouvrait l’application dès qu’un cercle rouge apparaissait, même en pleine conversation.", false),
+          q("ms3-l-9", 9, "Wer liest im Bett sonst weiter, obwohl er oder sie schlafen wollte?", people, "a", "Si le téléphone est près du lit, Selma continue les infos au lieu de dormir.", false),
+        ],
+      },
+      {
+        id: "ms3-l2",
+        title: "Teil 2",
+        suggestedMinutes: 12,
+        exclusive: true,
+        instruction: "Sie lesen einen Artikel über einen Stadtfluss. Welche Sätze a bis h passen in die Lücken 10 bis 15? Zwei Sätze passen nicht.",
+        clips: [],
+        stimuli: [{
+          id: "ms3-l2-text",
+          kicker: "Artikel",
+          title: "Der Fluss vor der Tür",
+          body: "Lange war der Fluss in der Stadt vor allem eine Grenze aus Beton. Fische gab es kaum. [[10]]\n\nIn den achtziger Jahren begann die Reinigung, langsam und teuer. [[11]] Spaziergänger blieben trotzdem auf dem oberen Weg, weit weg vom Wasser.\n\nErst die Umgestaltung der Ufer hat die Nutzung verändert. [[12]] Kinder beobachten dort Enten, ohne über eine Mauer zu klettern.\n\nDie Planung musste auch an Hochwasser denken. [[13]] Ein hübscher Weg direkt an der Kante wäre beim ersten starken Regen ein Fehler gewesen.\n\nNeben der Natur geht es um das Klima zwischen den Häusern. [[14]] Anwohner messen das im August, nicht in einer Broschüre.\n\nNicht jede Forderung der Autofahrer passt zu diesem Bild. [[15]] Eine weitere Fahrspur hätte genau die Fläche verbraucht, auf der jetzt Schatten steht.",
+        }],
+        questions: [
+          q("ms3-l-10", 10, "Lücke 10", sentences, "a", "L’absence de poissons s’explique par les eaux usées des usines et le manque d’oxygène.", false),
+          q("ms3-l-11", 11, "Lücke 11", sentences, "b", "Après le nettoyage, des oiseaux absents depuis des décennies nichent à nouveau. Les promeneurs restent pourtant loin de l’eau.", false),
+          q("ms3-l-12", 12, "Lücke 12", sentences, "e", "Le réaménagement ouvre un chemin jusqu’à l’eau : les enfants voient les canards sans escalader le mur.", false),
+          q("ms3-l-13", 13, "Lücke 13", sentences, "g", "La crue : la berge a besoin de place, sinon le chemin part avec l’eau.", false),
+          q("ms3-l-14", 14, "Lücke 14", sentences, "d", "Le climat entre les maisons : l’eau rafraîchit les rues les jours de chaleur.", false),
+          q("ms3-l-15", 15, "Lücke 15", sentences, "f", "La phrase vise ceux qui ne voient le fleuve que comme un raccourci pour les voitures.", false),
+        ],
+      },
+      {
+        id: "ms3-l3",
+        title: "Teil 3",
+        suggestedMinutes: 12,
+        exclusive: false,
+        instruction: "Sie lesen einen Artikel über die Kantine einer Klinik. Wählen Sie bei 16 bis 21 die richtige Lösung a, b oder c.",
+        clips: [],
+        stimuli: [{
+          id: "ms3-l3-text",
+          kicker: "Bericht",
+          title: "Essen zwischen zwei Schichten",
+          body: "Die Kantine der Klinik Nord hat ihr Angebot umgestellt. Es gibt weiterhin ein günstiges Tagesgericht. Neu ist ein zweites Gericht, das immer vegetarisch ist und nicht teurer sein darf als das erste. Die Leitung wollte kein Spezialessen für wenige, sondern eine normale Wahl.\n\nEine Umfrage unter 400 Beschäftigten vor der Umstellung zeigte: 62 Prozent aßen Fleisch, wenn es das einzige warme Essen war, nicht weil sie es jedem Gemüse vorzogen. Als es eine gleich teure Alternative gab, wählte im ersten Monat fast die Hälfte das vegetarische Gericht.\n\nDie Küche hatte mit mehr Aufwand gerechnet. Überraschend war das Gegenteil bei einer Stelle: Weniger verschiedene Soßen bedeuteten weniger Reste am Abend. Teurer wurde die Umstellung vor allem durch die neue Spätschicht. Wer nach 20 Uhr aus dem OP kommt, fand früher nur noch Kaltes. Jetzt bleibt eine warme Ausgabe bis 21:30 Uhr geöffnet, mit weniger Personal als mittags.\n\nKritik kommt vom Nachtdienst. Die Stunde bis 21:30 reicht nicht, wenn eine Übergabe länger dauert. Die Klinik will das nicht mit einem Automaten lösen. Ein Automat hatte im Probejahr viel Süßes und wenig Warmes verkauft. Stattdessen soll ein Tablett-Service auf zwei Stationen getestet werden.\n\nÄrztinnen der Ernährungsberatung loben die gleiche Preisregel. Sie sagen, ein Aufpreis von schon einem Euro reiche, damit müde Menschen wieder zum Fleischgericht greifen. Qualität sehen sie nicht in einem besonderen Namen auf der Karte, sondern darin, dass das Gemüse nicht stundenlang warmgehalten wird.",
+        }],
+        questions: [
+          q("ms3-l-16", 16, "Das neue vegetarische Gericht …", abc("darf nicht teurer sein als das Tagesgericht.", "ist ein teures Spezialessen für wenige.", "ersetzt das Fleischgericht vollständig."), "a", "Le plat végétarien ne doit pas coûter plus cher que le plat du jour. Le plat bon marché reste.", false),
+          q("ms3-l-17", 17, "Was zeigte die Umfrage vor der Umstellung?", abc("62 Prozent lehnten Gemüse grundsätzlich ab.", "Viele aßen Fleisch, weil es oft das einzige warme Essen war.", "Fast niemand nutzte die Kantine."), "b", "62 % prenaient de la viande parce que c’était le seul plat chaud, pas par rejet des légumes.", false),
+          q("ms3-l-18", 18, "Was war in der Küche überraschend?", abc("Es gab mehr Reste als früher.", "Weniger verschiedene Soßen führten zu weniger Resten.", "Das Personal mittags wurde verdoppelt."), "b", "Moins de sauces différentes, donc moins de restes le soir.", false),
+          q("ms3-l-19", 19, "Warum wurde die Umstellung vor allem teurer?", abc("Wegen importiertem Gemüse.", "Wegen der warmen Ausgabe bis 21:30 Uhr.", "Wegen eines höheren Fleischpreises."), "b", "Le surcoût principal vient du service chaud du soir, pas des légumes.", false),
+          q("ms3-l-20", 20, "Was lehnt die Klinik für den Nachtdienst ab?", abc("Einen Automaten als Lösung.", "Jede Form von Essen nach 20 Uhr.", "Den Tablett-Service als Test."), "a", "Elle ne veut pas résoudre le problème avec un distributeur, testé et trop sucré.", false),
+          q("ms3-l-21", 21, "Wann greifen müde Menschen laut Beratung wieder zum Fleischgericht?", abc("Wenn das Gemüse einen besonderen Namen trägt.", "Schon bei einem Aufpreis von einem Euro.", "Nur wenn es nach 21:30 Uhr warm bleibt."), "b", "Un euro de plus suffit pour que les gens fatigués reprennent le plat de viande.", false),
+        ],
+      },
+      {
+        id: "ms3-l4",
+        title: "Teil 4",
+        suggestedMinutes: 12,
+        exclusive: true,
+        instruction: "Sie lesen Meinungen zu mehreren Wochen Arbeit aus dem Ausland. Welche Äußerung passt zu welcher Überschrift? Eine Äußerung passt nicht. Äußerung a ist das Beispiel.",
+        clips: [],
+        stimuli: [
+          { id: "ms3-o-a", kicker: "a", title: "Elif, Hagen", body: "Ich habe sechs Wochen aus Lissabon gearbeitet. Die Stadt war schön, die Arbeit auch, aber die Steuerfrage habe ich erst danach verstanden. Schönheit ersetzt keine Beratung." },
+          { id: "ms3-o-b", kicker: "b", title: "Gerd, Wien", body: "Solange die Zeitzone nur eine Stunde entfernt ist, bleiben Besprechungen möglich. Fünf Stunden Unterschied bedeuten, dass jemand immer zu einer unmöglichen Uhrzeit spricht." },
+          { id: "ms3-o-c", kicker: "c", title: "Nuria, Leipzig", body: "Mein Team hat mich unterstützt, weil die Aufgaben vorher klar verteilt waren. Ohne diese Liste wäre ich diejenige gewesen, die nachts alles allein rettet." },
+          { id: "ms3-o-d", kicker: "d", title: "Hannes, Basel", body: "Ich dachte, im Ausland würde ich mehr sehen. Stattdessen saß ich im selben Programm, nur mit einem anderen Fenster. Wer die Stadt will, muss dafür freie Tage einplanen, nicht nur Feierabend um sieben." },
+          { id: "ms3-o-e", kicker: "e", title: "Klara, Erfurt", body: "Für meine Mutter wäre so eine Reise keine Freiheit. Sie pflegt meinen Vater und kann nicht einfach die Wohnung zumachen. Das Modell setzt Menschen voraus, die niemand anderen täglich brauchen." },
+          { id: "ms3-o-f", kicker: "f", title: "Samir, Köln", body: "Die Firma zahlte die Wohnung, nicht den Flug in der Mitte, als mein Kind krank wurde. Genau diese Lücke muss im Vertrag stehen, bevor man ja sagt." },
+          { id: "ms3-o-g", kicker: "g", title: "Petra, Oldenburg", body: "Ich habe danach schlechter gearbeitet, nicht besser. Der Reiz war weg, die Post hatte sich gestapelt, und niemand fand die Absprachen, die nur mündlich in einem Café getroffen wurden." },
+          { id: "ms3-o-h", kicker: "h", title: "Luis, Heidelberg", body: "Am liebsten arbeite ich mit einem großen Monitor und einer Tasse, die genau in diese Ecke des Tisches passt. Das Ausland ist mir dafür egal." },
+        ],
+        questions: [
+          q("ms3-l-bsp4", 0, "Steuern und Regeln werden leicht unterschätzt", opinions, "a", "Elif n’a compris la question fiscale qu’après le séjour.", true),
+          q("ms3-l-22", 22, "Der Zeitunterschied entscheidet über echte Zusammenarbeit", opinions, "b", "Gerd distingue une heure, encore gérable, et cinq heures, où quelqu’un parle toujours à une heure impossible.", false),
+          q("ms3-l-23", 23, "Klare Aufgaben im Team sind die Voraussetzung", opinions, "c", "Nuria a été soutenue parce que les tâches étaient distribuées avant le départ.", false),
+          q("ms3-l-24", 24, "Die Stadt sieht man nicht automatisch neben der Arbeit", opinions, "d", "Hannes est resté dans le même logiciel. Voir la ville demande des jours libres.", false),
+          q("ms3-l-25", 25, "Nicht jede Lebenssituation lässt eine Abwesenheit zu", opinions, "e", "Klara parle de sa mère, qui soigne son père et ne peut pas fermer l’appartement.", false),
+          q("ms3-l-26", 26, "Unvorhergesehene Kosten müssen vorher geregelt sein", opinions, "f", "L’entreprise a payé le logement, pas le vol du milieu quand l’enfant est tombé malade.", false),
+          q("ms3-l-27", 27, "Mündliche Absprachen gehen danach leicht verloren", opinions, "g", "Petra : les accords pris seulement à l’oral dans un café n’ont plus été retrouvés.", false),
+        ],
+      },
+      {
+        id: "ms3-l5",
+        title: "Teil 5",
+        suggestedMinutes: 6,
+        exclusive: true,
+        instruction: "Sie lesen Auszüge aus der Hausordnung eines Studierendenwohnheims. Welche Überschrift passt? Vier Überschriften werden nicht gebraucht.",
+        clips: [],
+        stimuli: [
+          { id: "ms3-idx", kicker: "Inhaltsverzeichnis", title: "Überschriften", body: "a Ruhezeiten\nb Gäste\nc Kaution\nd Gemeinschaftsküche\ne Internet\nf Schlüsselverlust\ng Haustiere\nh Zimmerwechsel" },
+          { id: "ms3-p0", kicker: "Beispiel § 0", title: "Lösung: b", body: "Besuch darf übernachten, jedoch höchstens drei Nächte hintereinander und nicht mehr als zehn Nächte im Monat. Eine Matratze stellt das Wohnheim nicht." },
+          { id: "ms3-p28", kicker: "§ 28", body: "Von 22 Uhr bis 7 Uhr sind Musik, laute Gespräche auf dem Flur und Waschmaschinen untersagt. In der Prüfungswoche beginnt die Ruhe bereits um 21 Uhr." },
+          { id: "ms3-p29", kicker: "§ 29", body: "Geschirr ist nach dem Kochen in die Schränke der eigenen Etage zu räumen. Lebensmittel ohne Namen und Datum werden freitags entsorgt. Die Herdplatten sind nach Gebrauch auszuschalten." },
+          { id: "ms3-p30", kicker: "§ 30", body: "Der Verlust eines Schlüssels ist sofort der Hausverwaltung zu melden. Die Kosten für den Austausch des Zylinders trägt die verursachende Person, nicht die Wohngemeinschaft." },
+        ],
+        questions: [
+          q("ms3-l-bsp5", 0, "Beispiel § 0", headings, "b", "Le paragraphe limite les nuits des visiteurs : c’est la règle sur les invités.", true),
+          q("ms3-l-28", 28, "§ 28", headings, "a", "De 22 h à 7 h, le bruit est interdit : les heures de calme.", false),
+          q("ms3-l-29", 29, "§ 29", headings, "d", "Vaisselle, nourriture et plaques : la cuisine commune.", false),
+          q("ms3-l-30", 30, "§ 30", headings, "f", "Clé perdue et changement de cylindre aux frais de la personne responsable.", false),
+        ],
+      },
+    ],
+  },
+  hoeren: {
+    id: "hoeren",
+    label: "Hören",
+    durationMinutes: 40,
+    parts: [
+      {
+        id: "ms3-h1",
+        title: "Teil 1",
+        suggestedMinutes: 8,
+        exclusive: false,
+        instruction: "Sie hören fünf kurze Texte einmal. Lesen Sie zuerst die Aufgaben.",
+        stimuli: [
+          { id: "ms3-s1", kicker: "Text 1", title: "Aufgaben 1–2", body: "Eine Ansage am Bahnhof.", audioId: "ms3-c1" },
+          { id: "ms3-s2", kicker: "Text 2", title: "Aufgaben 3–4", body: "Ein Anruf in einer Werkstatt.", audioId: "ms3-c2" },
+          { id: "ms3-s3", kicker: "Text 3", title: "Aufgaben 5–6", body: "Zwei Studierende vor der Bibliothek.", audioId: "ms3-c3" },
+          { id: "ms3-s4", kicker: "Text 4", title: "Aufgaben 7–8", body: "Eine Durchsage im Supermarkt.", audioId: "ms3-c4" },
+          { id: "ms3-s5", kicker: "Text 5", title: "Aufgaben 9–10", body: "Ein Gespräch über ein Konzert.", audioId: "ms3-c5" },
+        ],
+        clips: [
+          { id: "ms3-c1", label: "Text 1", maxPlays: 1, script: "Der Regionalzug nach Kiel fällt heute aus. Nutzen Sie bitte den Zug nach Lübeck um 10 Uhr 12 auf Gleis 4 und steigen Sie dort in den Bus Richtung Kiel. Die Fahrkarten bleiben gültig. Der Schienenersatzverkehr hält nicht am üblichen Bussteig, sondern vor dem Haupteingang." },
+          { id: "ms3-c2", label: "Text 2", maxPlays: 1, script: "Mein Rad ist fertig? Dann hole ich es nicht heute, sondern am Donnerstag nach 16 Uhr ab. Bitte tauschen Sie das Licht nicht noch zusätzlich. Ich hatte nur die Bremse in Auftrag gegeben. Die Rechnung schicken Sie mir gern per Mail." },
+          { id: "ms3-c3", label: "Text 3", maxPlays: 1, script: "Die Gruppenräume sind heute alle belegt. Wir können uns in den Lesesaal setzen, aber dort darf man nicht sprechen. Oder wir gehen in das Café im Erdgeschoss. Dort ist es laut, aber wir dürfen die Bücher mitnehmen, solange wir nichts essen direkt über den Seiten." },
+          { id: "ms3-c4", label: "Text 4", maxPlays: 1, script: "An Kasse drei erhalten Sie heute auf das Brot der Bäckerei einen Aufkleber für den halben Preis, aber nur bis 18 Uhr und nur auf die Brote vom Vortag. Die frischen Brote von heute bleiben zum normalen Preis. Bitte haben Sie den Aufkleber dabei, an der Information gibt es keinen Ersatz." },
+          { id: "ms3-c5", label: "Text 5", maxPlays: 1, script: "Ich würde gern mitkommen, aber die Karten im Stehbereich sind mir zu unsicher. Wenn noch zwei Sitzplätze nebeneinander frei sind, kaufe ich mit. Allein in der ersten Reihe will ich nicht, dort sehe ich schlecht auf die Untertitel." },
+        ],
+        questions: [
+          q("ms3-h-1", 1, "Der Zug nach Kiel fährt heute wie gewohnt.", yn, "f", "Le train régional pour Kiel est supprimé.", false),
+          q("ms3-h-2", 2, "Wo hält der Ersatzbus?", abc("Am üblichen Bussteig.", "Vor dem Haupteingang.", "Auf Gleis 4."), "b", "Le bus de remplacement s’arrête devant l’entrée principale, pas au quai habituel.", false),
+          q("ms3-h-3", 3, "Die Kundin holt das Rad heute ab.", yn, "f", "Elle le récupère jeudi après 16 h.", false),
+          q("ms3-h-4", 4, "Was soll die Werkstatt nicht zusätzlich machen?", abc("Das Licht tauschen.", "Die Bremse reparieren.", "Die Rechnung per Mail schicken."), "a", "Elle n’a commandé que le frein et refuse un changement de lumière en plus.", false),
+          q("ms3-h-5", 5, "Im Lesesaal darf man sich unterhalten.", yn, "f", "On peut s’y asseoir, mais on n’a pas le droit de parler.", false),
+          q("ms3-h-6", 6, "Was gilt für das Café im Erdgeschoss?", abc("Bücher sind verboten.", "Bücher dürfen mit, wenn man nicht direkt darüber isst.", "Es ist heute geschlossen."), "b", "Les livres sont autorisés si on ne mange pas directement au-dessus des pages.", false),
+          q("ms3-h-7", 7, "Alle Brote sind heute zum halben Preis.", yn, "f", "Seuls les pains de la veille, avec un autocollant, jusqu’à 18 h.", false),
+          q("ms3-h-8", 8, "Was braucht man an Kasse drei?", abc("Den Aufkleber.", "Einen Ersatzzettel von der Information.", "Die Quittung vom Vortag."), "a", "Il faut avoir l’autocollant. L’accueil n’en donne pas un autre.", false),
+          q("ms3-h-9", 9, "Die Person kommt auf jeden Fall mit.", yn, "f", "Elle ne vient que s’il reste deux places assises côte à côte.", false),
+          q("ms3-h-10", 10, "Warum will sie nicht allein in der ersten Reihe sitzen?", abc("Dort sind die Karten zu teuer.", "Dort sieht sie die Untertitel schlecht.", "Dort muss man stehen."), "b", "Au premier rang, elle voit mal les sous-titres.", false),
+        ],
+      },
+      {
+        id: "ms3-h2",
+        title: "Teil 2",
+        suggestedMinutes: 10,
+        exclusive: false,
+        instruction: "Sie hören ein Interview über Schlaf vor Prüfungen. Sie hören den Text zweimal.",
+        stimuli: [{ id: "ms3-h2-s", kicker: "Interview", title: "Schlaf und Prüfung", body: "Frau Bode spricht über Lernen am Vorabend.", audioId: "ms3-c6" }],
+        clips: [{
+          id: "ms3-c6",
+          label: "Interview",
+          maxPlays: 2,
+          script: "Moderator: Frau Bode, hilft eine durchgelernte Nacht vor der Prüfung? Bode: Fast nie. Was um zwei Uhr noch klar wirkt, ist morgens oft nicht abrufbar. Besser sind zwei kürzere Wiederholungen an den Tagen davor und eine normale Nacht. Moderator: Und Kaffee? Bode: Eine Tasse am Morgen ist in Ordnung. Mehrere Tassen nach 15 Uhr verschieben den Schlaf, auch wenn man sich wach fühlt. Moderator: Viele wiederholen im Bett noch Karteikarten. Bode: Das Bett sollte zum Schlafen gehören, nicht zum Prüfen. Wer dort lernt, liegt später wach. Moderator: Was ist mit einem kurzen Schlaf am Nachmittag? Bode: Zwanzig Minuten können helfen. Neunzig Minuten mitten am Tag machen den Abend schwerer. Moderator: Ihr letzter Rat? Bode: Legen Sie das Skript aus dem Blickfeld, bevor das Licht aus ist. Nicht unter das Kissen.",
+        }],
+        questions: [
+          q("ms3-h-11", 11, "Was sagt Frau Bode über eine Nacht ohne Schlaf vor der Prüfung?", abc("Sie ist die beste Methode.", "Sie hilft fast nie, weil der Stoff morgens oft nicht abrufbar ist.", "Sie ist nur für mündliche Prüfungen sinnvoll."), "b", "Ce qui semble clair à 2 h du matin n’est souvent plus disponible le matin.", false),
+          q("ms3-h-12", 12, "Was empfiehlt sie stattdessen?", abc("Zwei kürzere Wiederholungen an den Tagen davor und eine normale Nacht.", "Nur noch Kaffee und keine Wiederholung.", "Eine einzige lange Sitzung am letzten Abend."), "a", "Deux révisions plus courtes les jours d’avant, et une nuit normale.", false),
+          q("ms3-h-13", 13, "Was gilt für Kaffee?", abc("Nach 15 Uhr ist er unproblematisch.", "Mehrere Tassen nach 15 Uhr verschieben den Schlaf.", "Am Morgen sollte man ihn vermeiden."), "b", "Une tasse le matin va. Plusieurs après 15 h décalent le sommeil.", false),
+          q("ms3-h-14", 14, "Warum ist Lernen im Bett ungünstig?", abc("Die Karten gehen verloren.", "Das Bett wird mit Prüfen verbunden, und man liegt später wach.", "Es ist zu dunkel zum Lesen."), "b", "Le lit doit rester lié au sommeil, sinon on reste éveillé ensuite.", false),
+          q("ms3-h-15", 15, "Ein Nachmittagsschlaf …", abc("sollte etwa neunzig Minuten dauern.", "von etwa zwanzig Minuten kann helfen, ein langer eher nicht.", "ist immer verboten."), "b", "Vingt minutes peuvent aider. Quatre-vingt-dix minutes rendent le soir plus difficile.", false),
+          q("ms3-h-16", 16, "Wohin soll das Skript vor dem Schlafen?", abc("Unter das Kissen.", "Aus dem Blickfeld, nicht unter das Kissen.", "Auf die Bettdecke."), "b", "Elle demande de le sortir du champ de vision, pas de le glisser sous l’oreiller.", false),
+        ],
+      },
+      {
+        id: "ms3-h3",
+        title: "Teil 3",
+        suggestedMinutes: 10,
+        exclusive: false,
+        instruction: "Sie hören ein Gespräch über ein Stadtfest. Sie hören den Text einmal. Wer sagt das?",
+        stimuli: [{ id: "ms3-h3-s", kicker: "Gespräch", title: "Stadtfest", body: "Drei Personen. Jede kann mehrmals die Antwort sein.", audioId: "ms3-c7" }],
+        clips: [{
+          id: "ms3-c7",
+          label: "Gespräch",
+          maxPlays: 1,
+          script: "Deng: Wir legen die Bühne dieses Jahr an den Hafen, nicht auf den Markt. Dort ist mehr Platz, und die Anwohnenden am Markt hatten letztes Jahr kaum Schlaf. Bloch: Am Hafen wohne ich. Platz haben Sie vielleicht, Schlaf habe ich dann keinen. Ich bin nicht gegen das Fest, ich bin gegen Boxen bis ein Uhr direkt unter den Fenstern. Idris: Für meinen Stand ist der Hafen gut, weil sonntags mehr Menschen dort spazieren. Ich brauche aber Strom bis zum Abbau, nicht nur bis zum letzten Lied. Deng: Die Musik endet um 23 Uhr, der Abbau dauert länger, das steht so im Plan. Bloch: Und die Toiletten? Letztes Jahr waren es zu wenige, die Schlangen standen vor unseren Türen. Deng: Diesmal sind doppelt so viele Kabinen bestellt, auf der Hafenseite, nicht vor den Häusern. Idris: Dann stellen Sie sie bitte nicht direkt vor die Stände. Sonst kauft niemand, während er ansteht.",
+        }],
+        questions: [
+          q("ms3-h-17", 17, "Die Bühne soll den Anwohnenden am Markt eine ruhigere Nacht lassen.", speakers, "a", "Frau Deng déplace la scène au port pour que le marché dorme.", false),
+          q("ms3-h-18", 18, "Musik bis ein Uhr direkt unter den Fenstern ist nicht akzeptabel.", speakers, "b", "Herr Bloch habite au port et refuse les enceintes jusqu’à 1 h sous les fenêtres.", false),
+          q("ms3-h-19", 19, "Der neue Ort bringt sonntags mehr Laufkundschaft.", speakers, "c", "Frau Idris dit que le dimanche, plus de gens se promènent au port.", false),
+          q("ms3-h-20", 20, "Strom wird noch nach dem letzten Lied gebraucht.", speakers, "c", "Elle a besoin du courant jusqu’au démontage, pas seulement jusqu’à la dernière chanson.", false),
+          q("ms3-h-21", 21, "Zu wenige Toiletten haben letztes Jahr Schlangen vor den Haustüren verursacht.", speakers, "b", "Herr Bloch décrit les files devant leurs portes l’an dernier.", false),
+          q("ms3-h-22", 22, "Die Kabinen sollen nicht direkt vor den Verkaufsständen stehen.", speakers, "c", "Frau Idris ne veut pas des cabines juste devant les stands.", false),
+        ],
+      },
+      {
+        id: "ms3-h4",
+        title: "Teil 4",
+        suggestedMinutes: 12,
+        exclusive: false,
+        instruction: "Sie hören einen Vortrag über das Behalten von Namen. Sie hören den Text zweimal.",
+        stimuli: [{ id: "ms3-h4-s", kicker: "Vortrag", title: "Namen behalten", body: "Herr Pfaff spricht über Merkstrategien.", audioId: "ms3-c8" }],
+        clips: [{
+          id: "ms3-c8",
+          label: "Vortrag",
+          maxPlays: 2,
+          script: "Namen vergisst man selten, weil man unhöflich ist. Man vergisst sie, weil im Moment der Begrüßung zu viele andere Reize da sind: Hände, Raum, der eigene Satz. Wiederholen Sie den Namen einmal laut, in einem normalen Satz, nicht als isoliertes Wort. Schreiben Sie ihn danach auf, wenn das höflich möglich ist, zum Beispiel auf die Rückseite einer Karte. Eselsbrücken helfen nur, wenn sie zur Person passen. Eine absurde Geschichte verblasst schneller als ein echtes Detail, etwa die Stadt, aus der jemand kommt. In Gruppen stellen Sie nicht alle auf einmal vor. Drei Namen, dann eine Pause, dann die nächsten. Wer alle zehn auf einmal hört, behält den ersten und den letzten. Und korrigieren Sie sich früh. Ein falscher Name, den man eine Woche lang benutzt, setzt sich fest. Fragen ist kürzer als später eine Ausrede.",
+        }],
+        questions: [
+          q("ms3-h-23", 23, "Warum vergisst man Namen nach Herr Pfaff meistens?", abc("Weil man unhöflich ist.", "Weil bei der Begrüßung zu viele andere Reize da sind.", "Weil Namen grundsätzlich unwichtig sind."), "b", "Ce n’est pas l’impolitesse : trop de stimuli au moment de la salutation.", false),
+          q("ms3-h-24", 24, "Wie soll man den Namen wiederholen?", abc("Als isoliertes Wort, mehrmals geflüstert.", "Einmal laut in einem normalen Satz.", "Gar nicht, nur denken."), "b", "Une fois à voix haute, dans une phrase normale.", false),
+          q("ms3-h-25", 25, "Wann ist Aufschreiben sinnvoll?", abc("Wenn es höflich möglich ist, etwa auf der Rückseite einer Karte.", "Immer laut vor der Gruppe.", "Nur wenn man den Namen schon falsch benutzt hat."), "a", "L’écrire si c’est poli, par exemple au dos d’une carte.", false),
+          q("ms3-h-26", 26, "Welche Eselsbrücke hält besser?", abc("Eine absurde Geschichte.", "Ein echtes Detail, das zur Person passt.", "Eine Brücke, die nichts mit der Person zu tun hat."), "b", "Un détail réel, comme la ville d’origine, dure plus qu’une histoire absurde.", false),
+          q("ms3-h-27", 27, "Wie soll man eine Gruppe vorstellen?", abc("Alle auf einmal.", "In kleinen Gruppen, etwa drei Namen, dann eine Pause.", "Nur den ersten Namen."), "b", "Trois noms, une pause, puis les suivants.", false),
+          q("ms3-h-28", 28, "Wen behält man, wenn zehn Namen auf einmal kommen?", abc("Den ersten und den letzten.", "Nur die mittleren.", "Keinen."), "a", "On retient le premier et le dernier.", false),
+          q("ms3-h-29", 29, "Ein falscher Name, den man eine Woche benutzt, …", abc("vergisst sich von selbst.", "setzt sich fest.", "ist höflicher als nachzufragen."), "b", "Un mauvais nom utilisé une semaine s’installe.", false),
+          q("ms3-h-30", 30, "Was ist kürzer als eine spätere Ausrede?", abc("Den falschen Namen weiter zu benutzen.", "Früh nachzufragen.", "Die Person nicht mehr anzusprechen."), "b", "Demander tout de suite est plus court qu’une excuse plus tard.", false),
+        ],
+      },
+    ],
+  },
+  schreiben: {
+    id: "schreiben",
+    label: "Schreiben",
+    durationMinutes: 75,
+    tasks: [
+      {
+        id: "ms3-w1",
+        title: "Teil 1 — Forumsbeitrag",
+        minWords: 150,
+        situation: "Sie schreiben einen Forumsbeitrag für Reisende zum Thema kurze Strecken: Flug oder Zug? Denken Sie an eine Einleitung und einen Schluss.",
+        bullets: [
+          "Äußern Sie Ihre Meinung zu kurzen Flügen innerhalb eines Landes.",
+          "Nennen Sie Gründe, warum viele Menschen trotzdem fliegen.",
+          "Nennen Sie Vorteile der Zugreise auf solchen Strecken.",
+          "Machen Sie einen Vorschlag, was den Zug für mehr Menschen attraktiv machen würde.",
+        ],
+        closingNote: "Mindestens 150 Wörter.",
+        coach: "Gardez les quatre points visibles. Une phrase de liaison entre chaque bloc suffit.",
+      },
+      {
+        id: "ms3-w2",
+        title: "Teil 2 — Nachricht",
+        minWords: 100,
+        situation: "In Ihrer Mietwohnung tropft seit zwei Tagen die Küchendecke. Schreiben Sie eine Nachricht an die Hausverwaltung, Herrn Pauli.",
+        bullets: [
+          "Beschreiben Sie den Schaden.",
+          "Sagen Sie, seit wann er besteht und was Sie bereits getan haben.",
+          "Bitten Sie um einen Termin in den nächsten Tagen.",
+          "Erklären Sie, warum die Sache dringend ist.",
+        ],
+        closingNote: "Mindestens 100 Wörter, sachlich und höflich.",
+        coach: "Sehr geehrter Herr Pauli, faits, demande, urgence, formule de politesse.",
+      },
+    ],
+  },
+  sprechen: {
+    id: "sprechen",
+    label: "Sprechen",
+    durationMinutes: 15,
+    tasks: [
+      {
+        id: "ms3-p1",
+        title: "Teil 1 — Vortrag",
+        minutes: 4,
+        situation: "Wählen Sie ein Thema für einen kurzen Vortrag.",
+        bullets: [
+          "Thema A: Sollten Haustiere in Mietwohnungen leichter erlaubt sein?",
+          "Thema B: Ist ein fester Feierabend ohne E-Mails notwendig?",
+          "Einleitung, Beispiel, begründete Meinung, Schluss.",
+        ],
+        coach: "Parlez quatre minutes. Le texte à droite reste un brouillon.",
+      },
+      {
+        id: "ms3-p2",
+        title: "Teil 2 — Diskussion",
+        minutes: 5,
+        situation: "Ihre Lerngruppe kann nur eines finanzieren: einen gemeinsamen Wochenendkurs oder neue Materialien für zu Hause.",
+        bullets: [
+          "Wählen Sie eine Seite und begründen Sie sie.",
+          "Zeigen Sie, was die andere Seite Gutes hat.",
+          "Schlagen Sie einen Kompromiss vor.",
+          "Reagieren Sie auf einen Einwand.",
+        ],
+        coach: "Ich verstehe den Punkt, trotzdem … / Wir könnten … und dafür …",
+      },
+    ],
+  },
+};

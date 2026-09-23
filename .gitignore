@@ -1,0 +1,7 @@
+node_modules
+.next
+.vercel
+_pdf_preview
+*.pdf
+*.tsbuildinfo
+next-env.d.ts
