@@ -19,14 +19,14 @@ export function SkillsScreen() {
     <AppFrame>
       <main className="mx-auto w-full max-w-6xl px-4 pb-[var(--tab-clear,7rem)] pt-6 lg:px-10 lg:pb-16 lg:pt-10">
         <h1 className="text-center font-serif text-4xl leading-none sm:text-left sm:text-5xl lg:text-6xl">Compétences</h1>
-        <p className="mx-auto mt-3 max-w-2xl text-center text-base leading-relaxed text-[#5e584e] sm:mx-0 sm:text-left">Choisis une seule chose. L’application prépare la série et t’explique le geste, sans mode d’emploi.</p>
+        <p className="mx-auto mt-3 max-w-2xl text-center text-base leading-relaxed text-[#5e584e] sm:mx-0 sm:text-left">Choisis une compétence. La série se prépare toute seule, et la fiche dit quoi faire.</p>
         {running ? (
           <p className="mt-5 max-w-3xl rounded-3xl border border-[#ddd4c4] bg-white p-5 text-base leading-relaxed text-[#1c1915]">
             Une série est déjà ouverte.{" "}
             <Link href="/pratique" className="font-semibold text-[#16324f] underline decoration-[#c9bfae] underline-offset-4">
               La reprendre
             </Link>
-            , ou l’abandonner depuis l’entraînement, avant d’en choisir une autre.
+            , ou abandonne-la dans l’entraînement, avant d’en choisir une autre.
           </p>
         ) : null}
         {modules.map((moduleName) => (

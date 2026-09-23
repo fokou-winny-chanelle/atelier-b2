@@ -37,7 +37,7 @@ export function AudioButton({
       onerror: () => {
         refundAudio(sessionId, clip.id);
         setBusy(false);
-        setError("La lecture n’a pas démarré. Vérifiez qu’une voix allemande est installée dans Windows, puis réessayez.");
+        setError("La lecture n’a pas démarré. Réessaie. Sur ordinateur, vérifie qu’une voix allemande est installée.");
       },
     });
   }

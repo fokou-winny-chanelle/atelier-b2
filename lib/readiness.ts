@@ -104,11 +104,13 @@ export function modulePictures(input: {
     let status: ModulePicture["status"] = "inconnu";
     if (latest && (latest.words < latest.minWords || (latest.asked > 0 && latest.held / latest.asked < 0.6))) status = "fragile";
     else if (latest) status = "proche";
-    const note = latest
-      ? status === "fragile"
-        ? "Dernier texte ou oral encore fragile"
-        : "Produit et relu. Ce n’est pas une note d’examinateur."
-      : "Pas encore produit";
+    const note = !latest
+      ? "Pas encore fait"
+      : status === "fragile"
+        ? id === "schreiben"
+          ? "Le dernier texte ne tient pas encore."
+          : "Le dernier oral ne tient pas encore."
+        : "Relu par toi. Ce n’est pas une note d’examinateur.";
     return { id, label: MODULE_LABEL[id], rate: null, wrong: 0, lastPoints: null, status, note };
   });
 }
@@ -126,7 +128,7 @@ export function advise(input: {
   if (input.running) {
     return {
       title: "Série ouverte",
-      detail: "Termine-la, ou abandonne-la depuis l’entraînement, avant d’en changer.",
+      detail: "Termine-la, ou abandonne-la dans l’entraînement, avant d’en ouvrir une autre.",
       button: "Continuer la série",
       action: "continue",
     };
@@ -134,7 +136,7 @@ export function advise(input: {
   if (input.dueSteps > 0) {
     return {
       title: "Erreurs à revoir",
-      detail: `${input.dueSteps} retour${input.dueSteps > 1 ? "s" : ""} prévu${input.dueSteps > 1 ? "s" : ""} aujourd’hui. C’est ça qui fait monter un module.`,
+      detail: `${input.dueSteps} exercice${input.dueSteps > 1 ? "s" : ""} à revoir aujourd’hui. Revoir une erreur la fixe mieux qu’une question nouvelle.`,
       button: "Revoir",
       action: "review",
     };
@@ -146,8 +148,8 @@ export function advise(input: {
     if (target) {
       const skill = weakestSkill(input, target.id);
       return {
-        title: `${target.label} est sous le seuil`,
-        detail: `${target.note}. Un module se réussit seul à 60. Un autre module ne le rattrape pas.`,
+        title: `${target.label} n’est pas encore à 60`,
+        detail: `${target.note}. Chaque module se réussit seul à 60. Un autre module ne le rattrape pas.`,
         button: `Travailler ${target.label}`,
         action: "skill",
         skill: skill?.id,
@@ -158,7 +160,7 @@ export function advise(input: {
   if (closed.some((module) => module.status === "inconnu")) {
     return {
       title: "Série du jour",
-      detail: "Commence par les questions. Chaque module se réussit seul à 60, et les erreurs reviennent.",
+      detail: "Commence par les questions. Chaque module se réussit seul à 60. Une erreur revient le lendemain.",
       button: "Commencer",
       action: "daily",
     };
@@ -170,7 +172,7 @@ export function advise(input: {
   if (schreiben && (schreiben.status === "inconnu" || schreiben.status === "fragile" || !write || input.now - write.at > 6 * DAY)) {
     return {
       title: "Écrire",
-      detail: "Le forum et le message se notent à part. Un texte relu vaut mieux qu’une question de plus.",
+      detail: "Le forum et le courrier se notent chacun à part. Écris, puis dis si chaque critère tient.",
       button: "Écrire un texte",
       action: "skill",
       skill: "schreiben",
@@ -179,7 +181,7 @@ export function advise(input: {
   if (sprechen && (sprechen.status === "inconnu" || sprechen.status === "fragile" || !speak || input.now - speak.at > 6 * DAY)) {
     return {
       title: "Parler",
-      detail: "À l’examen, tu as 15 minutes pour préparer, puis tu parles. Ici, tu le fais à voix haute.",
+      detail: "Prépare tes notes, puis dis le sujet à voix haute. Tu juges toi-même : ce n’est pas une note d’examinateur.",
       button: "Parler",
       action: "skill",
       skill: "sprechen",
@@ -187,7 +189,7 @@ export function advise(input: {
   }
   return {
     title: "Série du jour",
-    detail: "Questions nouvelles et questions dues. Compte environ un quart d’heure.",
+    detail: "Des questions nouvelles, et celles qui doivent revenir. Compte un quart d’heure.",
     button: "Commencer",
     action: "daily",
   };

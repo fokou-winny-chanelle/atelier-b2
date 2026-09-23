@@ -121,7 +121,7 @@ export function HomeScreen() {
               className="flex min-h-28 flex-1 flex-col justify-center rounded-3xl border border-[#ddd4c4] bg-white px-5 py-4 text-left disabled:bg-[#efeae0] disabled:text-[#5e584e]"
             >
               <span className="text-sm text-[#5e584e]">Erreurs à revoir</span>
-              <span className="mt-1 text-xl font-semibold text-[#1c1915]">{running ? "Disponible après la série ouverte" : hydrated ? review.blurb : "Chargement…"}</span>
+              <span className="mt-1 text-xl font-semibold text-[#1c1915]">{running ? "Disponible quand la série en cours est finie" : hydrated ? review.blurb : "Chargement…"}</span>
             </button>
           </div>
         </div>
@@ -129,7 +129,7 @@ export function HomeScreen() {
         <section className="mt-8">
           <h2 className="font-serif text-3xl">Examen blanc</h2>
           <p className="mt-2 max-w-3xl text-base leading-relaxed text-[#5e584e]">
-            L’examen écrit garde la correction pour la fin. Le mode avec correction la montre à la fin de chaque partie. Les questions ratées entrent ensuite dans les révisions. Aujourd’hui : {hydrated ? today.blurb : "…"}.
+            L’examen écrit garde la correction pour la fin. Avec correction, tu la vois à la fin de chaque partie. Les questions ratées reviennent ensuite dans les révisions. Pour aujourd’hui : {hydrated ? today.blurb : "…"}.
           </p>
           {recent.length > 0 ? (
             <ul className="mt-4 grid gap-2">

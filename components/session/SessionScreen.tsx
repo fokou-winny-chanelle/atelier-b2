@@ -237,7 +237,7 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
       {expired ? (
         <dialog open className="sheet">
           <h2>Die Zeit ist abgelaufen</h2>
-          <p>En mode examen, le module se ferme quand le temps est écoulé. Vos réponses sont déjà enregistrées.</p>
+          <p>En mode examen, le module se ferme quand le temps est écoulé. Tes réponses sont déjà enregistrées.</p>
           <button type="button" className="primary" onClick={() => finish(session, moduleId, exam, advancePhase, submit, router)}>
             Continuer
           </button>
@@ -845,64 +845,64 @@ function Help({ moduleId, onClose }: { moduleId: ModuleId; onClose: () => void }
 
 const HELP_PHONE: Record<ModuleId, string[]> = {
   lesen: [
-    "Sur le téléphone, Texte et Questions sont deux écrans. Le bandeau sous le titre bascule de l’un à l’autre.",
-    "Lisez le texte, puis ouvrez Questions. Une seule case par question.",
-    "Sur les trous et les titres, une lettre ne sert qu’une fois : la recocher la retire de l’autre question.",
-    "Markieren garde la question pour plus tard. Übersicht ouvre la grille : vert = répondu, jaune = marqué, blanc = ouvert. Un numéro vous ramène sur Questions.",
-    "Textmarker : activez l’outil dans le pied, revenez sur Texte, sélectionnez un passage. Touchez le surlignage pour l’enlever.",
-    "Zurück et Nächster Teil sont au centre du pied. Chaque réponse est enregistrée dans ce navigateur.",
+    "Sur le téléphone, Texte et Questions sont deux écrans. Touche le bandeau sous le titre pour passer de l’un à l’autre.",
+    "Lis le texte, puis ouvre Questions. Une seule case par question.",
+    "Dans les trous et les titres, une lettre ne sert qu’une fois. Si tu la recoches, elle quitte l’autre question.",
+    "Markieren garde une question pour plus tard. Übersicht ouvre la grille : vert = répondu, jaune = marqué, blanc = ouvert. Un numéro te ramène sur Questions.",
+    "Textmarker : active l’outil dans la barre du bas, reviens sur Texte, sélectionne un passage. Touche le surlignage pour l’enlever.",
+    "Zurück recule. Nächster Teil avance. Chaque réponse est enregistrée dans ce navigateur.",
   ],
   hoeren: [
-    "Sur le téléphone, l’écoute est sur Texte et les questions sur Questions. Basculez avec le bandeau sous le titre.",
-    "Lancez Écouter avant de passer aux questions. Le nombre d’écoutes est limité, sans avance rapide.",
+    "Sur le téléphone, l’écoute est sur Texte et les questions sur Questions. Touche le bandeau pour changer.",
+    "Lance Écouter avant d’ouvrir les questions. Le nombre d’écoutes est limité.",
     "En entraînement, la transcription apparaît sur Texte après la dernière écoute. En examen, elle reste cachée.",
-    "Une seule case par question. Quand les voix peuvent se répéter, la même lettre peut revenir.",
-    "Markieren et Übersicht fonctionnent comme en lecture : la grille jaune et verte ouvre directement la question.",
-    "Zurück et Nächster Teil sont au centre du pied. Chaque réponse est enregistrée dans ce navigateur.",
+    "Une seule case par question. La même personne peut revenir.",
+    "Markieren et Übersicht servent à retrouver une question. Un numéro ouvre Questions.",
+    "Zurück recule. Nächster Teil avance. Chaque réponse est enregistrée dans ce navigateur.",
   ],
   schreiben: [
-    "Sur le téléphone, la consigne est sur Texte et votre copie sur Questions. Le bandeau sous le titre bascule.",
+    "Sur le téléphone, la consigne est sur Texte et ton texte sur Questions.",
     "Le compteur de mots est sous le champ, sur Questions. Le minimum est indiqué à côté.",
-    "Les boutons ä ö ü ß du pied insèrent le signe là où se trouve le curseur. Touchez d’abord le texte.",
-    "En mode examen, coller un texte est bloqué. En entraînement, la pause du pied arrête le temps.",
-    "Chaque Teil a sa consigne. Nächster Teil, au centre du pied, passe à la tâche suivante.",
+    "Les boutons ä ö ü ß, dans la barre du bas, insèrent le signe là où est le curseur. Touche d’abord le texte.",
+    "En examen, coller est bloqué. En entraînement, Pause dans la barre du bas arrête le temps.",
+    "Chaque Teil a sa consigne. Nächster Teil passe à la tâche suivante.",
     "Le texte est enregistré dans ce navigateur au fur et à mesure.",
   ],
   sprechen: [
-    "Sur le téléphone, la situation est sur Texte et vos notes sur Questions. Le bandeau sous le titre bascule.",
-    "Ce module prépare la prise de parole. Les notes ne sont pas une note d’examen.",
-    "Le temps affiché en haut est celui du module. La préparation officielle dure 15 minutes avant d’entrer.",
-    "Chaque Teil change de situation. Nächster Teil est au centre du pied.",
-    "Les notes restent dans ce navigateur.",
+    "Sur le téléphone, la situation est sur Texte et tes notes sur Questions.",
+    "Tu prépares ta prise de parole. Ces notes ne sont pas une note d’examinateur.",
+    "Le temps en haut compte la durée du module. À l’examen, la préparation dure 15 minutes avant d’entrer.",
+    "Chaque Teil change de situation. Nächster Teil est dans la barre du bas.",
+    "Tes notes restent dans ce navigateur.",
   ],
 };
 
 const HELP_DESK: Record<ModuleId, string[]> = {
   lesen: [
-    "Le texte reste à gauche, les questions à droite. Chaque colonne défile seule. La barre entre les deux se tire.",
-    "Une seule case par question. Sur les trous et les titres, une lettre ne sert qu’une fois : en la recochant, elle quitte l’autre question.",
-    "Markieren signale une question. Übersicht montre le vert, le blanc et le jaune, puis saute à la question.",
-    "Textmarker : activez l’outil, sélectionnez un passage à gauche, cliquez le surlignage pour l’enlever.",
-    "Zurück et Nächster Teil avancent dans le module. Tout est enregistré dans ce navigateur.",
+    "Le texte reste à gauche, les questions à droite. Chaque colonne défile seule. Tu peux tirer la barre entre les deux.",
+    "Une seule case par question. Dans les trous et les titres, une lettre ne sert qu’une fois. Si tu la recoches, elle quitte l’autre question.",
+    "Markieren garde une question. Übersicht montre le vert, le blanc et le jaune, puis saute à la question.",
+    "Textmarker : active l’outil, sélectionne un passage à gauche, clique le surlignage pour l’enlever.",
+    "Zurück recule. Nächster Teil avance. Chaque réponse est enregistrée dans ce navigateur.",
   ],
   hoeren: [
     "Le lecteur est à gauche, les questions à droite. Chaque colonne défile seule.",
-    "Le bouton ne joue le texte qu’une fois ou deux, sans avance rapide.",
+    "Le bouton joue le texte une fois ou deux, sans avance rapide.",
     "En entraînement, la transcription apparaît à gauche après la dernière écoute. En examen, elle reste cachée.",
     "Une seule case par question. Markieren et Übersicht servent à revenir sur une question.",
-    "Zurück et Nächster Teil avancent dans le module. Tout est enregistré dans ce navigateur.",
+    "Zurück recule. Nächster Teil avance. Chaque réponse est enregistrée dans ce navigateur.",
   ],
   schreiben: [
-    "La consigne est à gauche, votre texte à droite. La barre entre les deux se tire.",
-    "Le compteur de mots est en direct, sous le champ. Le minimum est indiqué à côté.",
-    "Les boutons ä ö ü ß insèrent le signe à l’endroit du curseur.",
-    "En mode examen, le collage est bloqué. En entraînement, Pause arrête le temps.",
+    "La consigne est à gauche, ton texte à droite. Tu peux tirer la barre entre les deux.",
+    "Le compteur de mots est sous le champ. Le minimum est indiqué à côté.",
+    "Les boutons ä ö ü ß insèrent le signe là où est le curseur. Clique d’abord dans le texte.",
+    "En examen, coller est bloqué. En entraînement, Pause arrête le temps.",
     "Nächster Teil passe à la tâche suivante. Le texte est enregistré dans ce navigateur.",
   ],
   sprechen: [
-    "La situation est à gauche, vos notes à droite. La barre entre les deux se tire.",
-    "Ce module prépare la prise de parole. Les notes ne sont pas une note d’examen.",
-    "Le temps en haut est celui du module. La préparation officielle dure 15 minutes avant d’entrer.",
-    "Nächster Teil change de situation. Les notes restent dans ce navigateur.",
+    "La situation est à gauche, tes notes à droite. Tu peux tirer la barre entre les deux.",
+    "Tu prépares ta prise de parole. Ces notes ne sont pas une note d’examinateur.",
+    "Le temps en haut compte la durée du module. À l’examen, la préparation dure 15 minutes avant d’entrer.",
+    "Nächster Teil change de situation. Tes notes restent dans ce navigateur.",
   ],
 };

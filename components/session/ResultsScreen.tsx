@@ -123,7 +123,7 @@ export function ResultsScreen({ sessionId }: { sessionId: string }) {
       {session.phases.includes("schreiben") ? (
         <section className="dossier">
           <h2>Schreiben — autoévaluation</h2>
-          <p>Le texte n’est pas noté automatiquement. Cochez ce que vous avez vraiment fait, puis relisez avec le rappel.</p>
+          <p>Le texte n’est pas noté automatiquement. Coche ce que tu as vraiment traité, puis relis le rappel.</p>
           {exam.schreiben.tasks.map((task) => {
             const text = session.writings[task.id] ?? "";
             const words = countWords(text);
@@ -132,7 +132,7 @@ export function ResultsScreen({ sessionId }: { sessionId: string }) {
               <article key={task.id} className="dossier-card">
                 <h3>{task.title}</h3>
                 <p className={words >= task.minWords ? "words is-ok" : "words"}>
-                  {words} Wörter · mindestens {task.minWords}
+                  {words} mots · au moins {task.minWords}
                 </p>
                 <ul className="checks">
                   {task.bullets.map((bullet) => (
@@ -202,8 +202,8 @@ function ModuleReview({ phase, exam, session }: { phase: ClosedModuleId; exam: E
                       <p>
                         <strong>{question.number}.</strong> {question.prompt}
                       </p>
-                      <p>Votre réponse : {givenText}</p>
-                      {ok ? null : <p>Solution : {answerText}</p>}
+                      <p>Ta réponse : {givenText}</p>
+                      {ok ? null : <p>Bonne réponse : {answerText}</p>}
                       <p className="why">{question.explanation}</p>
                     </li>
                   );

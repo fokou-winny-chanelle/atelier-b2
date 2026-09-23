@@ -315,7 +315,7 @@ export const modellsatz03: Exam = {
           "Machen Sie einen Vorschlag, was den Zug für mehr Menschen attraktiv machen würde.",
         ],
         closingNote: "Mindestens 150 Wörter.",
-        coach: "Gardez les quatre points visibles. Une phrase de liaison entre chaque bloc suffit.",
+        coach: "Garde les quatre points visibles. Une phrase de liaison entre chaque bloc suffit.",
       },
       {
         id: "ms3-w2",
@@ -348,7 +348,7 @@ export const modellsatz03: Exam = {
           "Thema B: Ist ein fester Feierabend ohne E-Mails notwendig?",
           "Einleitung, Beispiel, begründete Meinung, Schluss.",
         ],
-        coach: "Parlez quatre minutes. Le texte à droite reste un brouillon.",
+        coach: "Parle environ quatre minutes. Tes notes restent un brouillon.",
       },
       {
         id: "ms3-p2",

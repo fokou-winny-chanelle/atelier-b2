@@ -410,7 +410,7 @@ export const modellsatz01: Exam = {
         ],
         closingNote: "Schreiben Sie mindestens 100 Wörter. Achten Sie auf eine höfliche Anrede und eine passende Schlussformel.",
         coach:
-          "Message semi-formelle : Sehr geehrte Frau Krüger, quatre points dans un ordre logique, Mit freundlichen Grüßen et votre nom.",
+          "Message semi-formel : Sehr geehrte Frau Krüger, quatre points dans un ordre logique, Mit freundlichen Grüßen et ton nom.",
       },
     ],
   },
@@ -432,7 +432,7 @@ export const modellsatz01: Exam = {
           "Ihre Meinung mit Begründung.",
           "Schluss: ein Blick nach vorn oder eine offene Frage.",
         ],
-        coach: "Parlez à voix haute pendant environ quatre minutes. Les notes à droite servent de brouillon, comme le temps de préparation.",
+        coach: "Parle à voix haute pendant environ quatre minutes. Tes notes servent de brouillon, comme pendant la préparation.",
       },
       {
         id: "ms1-p2",
@@ -445,7 +445,7 @@ export const modellsatz01: Exam = {
           "Machen Sie einen Vorschlag, wie man vielleicht beiden Seiten etwas geben kann.",
           "Reagieren Sie auf ein Gegenargument, das Sie selbst formulieren.",
         ],
-        coach: "Entraînez les tours de parole : Da haben Sie recht, allerdings … / Ich sehe das anders, weil …",
+        coach: "Entraîne les tours de parole : Da haben Sie recht, allerdings … / Ich sehe das anders, weil …",
       },
     ],
   },

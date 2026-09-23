@@ -335,7 +335,7 @@ export const modellsatz02: Exam = {
           "Bedanken Sie sich für die bisherige Teilnahme und nennen Sie, was Ihnen der Kurs gebracht hat.",
         ],
         closingNote: "Mindestens 100 Wörter, höfliche Anrede und Grußformel.",
-        coach: "Sehr geehrte Frau Abbas … Mit freundlichen Grüßen. Restez concret sur l’horaire.",
+        coach: "Sehr geehrte Frau Abbas … Mit freundlichen Grüßen. Reste concret sur l’horaire.",
       },
     ],
   },

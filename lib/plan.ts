@@ -1,4 +1,4 @@
-import type { PoolBlock, PoolCard, PoolPrompt } from "./catalog";
+import { SKILLS, type PoolBlock, type PoolCard, type PoolPrompt } from "./catalog";
 
 export interface MemoryItem {
   seen: number;
@@ -102,7 +102,7 @@ export function buildPlan(input: {
     ];
     return {
       title: "À revoir",
-      blurb: steps.length ? `${steps.length} retours prévus aujourd’hui.` : "Rien à revoir pour le moment.",
+      blurb: steps.length === 0 ? "Rien à revoir pour le moment." : steps.length === 1 ? "1 exercice à revoir aujourd’hui." : `${steps.length} exercices à revoir aujourd’hui.`,
       steps,
     };
   }
@@ -158,15 +158,15 @@ export function buildPlan(input: {
   const cards = steps.filter((step) => step.kind === "card").length;
   const hasBlock = steps.some((step) => step.kind === "block");
   const hasWrite = steps.some((step) => step.kind === "write" || step.kind === "speak");
-  const blurb = [
-    hasWrite ? "un moment pour produire" : "",
-    hasBlock ? "un exercice en bloc" : "",
-    cards ? `${cards} questions` : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const bits = [
+    hasWrite ? "un texte ou un oral" : "",
+    hasBlock ? "une partie entière" : "",
+    cards === 1 ? "1 question" : cards > 1 ? `${cards} questions` : "",
+  ].filter(Boolean);
+  const joined = bits.join(", ").replace(/, ([^,]*)$/, " et $1");
+  const blurb = joined ? `${joined.charAt(0).toUpperCase()}${joined.slice(1)}.` : "Une série courte.";
 
-  return { title: "Aujourd’hui", blurb: blurb || "Une série courte.", steps };
+  return { title: "Aujourd’hui", blurb, steps };
 }
 
 function skillPlan(
@@ -198,6 +198,7 @@ function skillPlan(
       steps: task ? [{ kind: "speak", taskId: task.taskId, examId: task.examId }] : [],
     };
   }
+  const named = SKILLS.find((item) => item.id === skill)?.title;
   if (EXCLUSIVE_SKILLS.has(skill)) {
     const ranked = input.blocks
       .filter((item) => item.skill === skill)
@@ -205,8 +206,8 @@ function skillPlan(
       .sort((left, right) => openCount(right, input) - openCount(left, input));
     const block = ranked[0];
     return {
-      title: "En bloc",
-      blurb: "Toutes les réponses de cette partie, puis la correction.",
+      title: named ?? "Partie entière",
+      blurb: "Tu réponds à toute la partie, puis tu vois pourquoi.",
       steps: block ? [{ kind: "block", partId: block.partId, examId: block.examId }] : [],
     };
   }
@@ -222,7 +223,11 @@ function skillPlan(
     if (picked.some((item) => item.questionId === card.questionId)) continue;
     picked.push(card);
   }
-  return { title: "Série ciblée", blurb: `${picked.length} questions, une par une.`, steps: picked.map(cardStep) };
+  return {
+    title: named ?? "Questions",
+    blurb: picked.length === 1 ? "1 question, avec la raison." : `${picked.length} questions, une par une, avec la raison.`,
+    steps: picked.map(cardStep),
+  };
 }
 
 export function practiceStreak(days: string[], now: number): number {

@@ -42,7 +42,7 @@ export function ProgressScreen() {
           {modules.map((module) => (
             <li key={module.id} className="rounded-3xl border border-[#ddd4c4] bg-white p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-[#5c4318]">{module.label}</p>
-              <p className="mt-2 font-serif text-3xl text-[#16324f]">{module.status === "seuil" ? "60 atteint" : module.status === "fragile" ? "Sous 60" : module.status === "proche" ? "Proche" : "À commencer"}</p>
+              <p className="mt-2 font-serif text-3xl text-[#16324f]">{module.status === "seuil" ? "60 atteint" : module.status === "fragile" ? "Sous 60" : module.status === "proche" ? "Proche de 60" : "À commencer"}</p>
               <p className="mt-2 text-sm leading-relaxed text-[#5e584e]">{hydrated ? module.note : "…"}</p>
             </li>
           ))}
@@ -50,15 +50,15 @@ export function ProgressScreen() {
         <div className="mt-8 grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
           <p className="rounded-3xl bg-[#16324f] p-6 text-[#f6f1e7]">
             <span className="block font-serif text-6xl leading-none">{hydrated ? streak : "…"}</span>
-            <span className="mt-3 block text-lg">{hydrated ? `jour${streak > 1 ? "s" : ""} d’affilée` : "Calcul…"}</span>
-            <span className="mt-2 block text-sm leading-relaxed text-[#e4ebf3]">Un jour compte dès qu’une série est terminée. Ce n’est pas une note d’examen.</span>
+            <span className="mt-3 block text-lg">{hydrated ? `${streak === 1 ? "jour" : "jours"} d’affilée` : "Calcul…"}</span>
+            <span className="mt-2 block text-sm leading-relaxed text-[#e4ebf3]">Un jour compte quand une série est terminée jusqu’au bout. Ce n’est pas une note d’examen.</span>
           </p>
           <div className="rounded-3xl border border-[#ddd4c4] bg-white p-6 text-base leading-relaxed text-[#1c1915]">
             <p>En examen, un module est réussi à 60 sur 100. Ici, le pourcentage est ta réussite à l’entraînement, sur cet appareil. Ce n’est pas une note officielle.</p>
-            {hydrated && dueCount > 0 ? <p className="mt-3 font-semibold">{dueCount} question{dueCount > 1 ? "s" : ""} ratée{dueCount > 1 ? "s" : ""} {dueCount > 1 ? "sont" : "est"} prévue{dueCount > 1 ? "s" : ""} au retour.</p> : null}
+            {hydrated && dueCount > 0 ? <p className="mt-3 font-semibold">{dueCount === 1 ? "1 question ratée est à revoir." : `${dueCount} questions ratées sont à revoir.`}</p> : null}
             {hydrated && belowPass.length > 0 ? (
               <p className="mt-3">
-                Sous le seuil : {belowPass.map((row) => `${row.module} · ${row.title} (${row.rate} %)`).join(", ")}.{" "}
+                Sous 60 : {belowPass.map((row) => `${row.module} · ${row.title} (${row.rate} %)`).join(", ")}.{" "}
                 <Link href="/competences" className="font-semibold text-[#16324f] underline decoration-[#c9bfae] underline-offset-4">
                   S’y remettre
                 </Link>

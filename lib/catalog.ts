@@ -30,7 +30,7 @@ export interface SkillInfo {
 
 export const SKILLS: SkillInfo[] = [
   { id: "lesen-1", module: "Lesen", title: "Quatre personnes", detail: "Lis les phrases d’abord, puis un texte à la fois. Une personne peut revenir plusieurs fois.", exclusive: false },
-  { id: "lesen-2", module: "Lesen", title: "Texte à trous", detail: "Deux phrases ne vont nulle part. Chaque phrase ne s’utilise qu’une fois.", exclusive: true },
+  { id: "lesen-2", module: "Lesen", title: "Texte à trous", detail: "Deux phrases sont en trop. Chaque phrase ne s’utilise qu’une fois.", exclusive: true },
   { id: "lesen-3", module: "Lesen", title: "Choix a, b ou c", detail: "La bonne réponse reprend l’idée du texte, souvent avec d’autres mots.", exclusive: false },
   { id: "lesen-4", module: "Lesen", title: "Titres et avis", detail: "Un avis ne correspond à aucun titre. L’exemple est déjà utilisé.", exclusive: true },
   { id: "lesen-5", module: "Lesen", title: "Règlements", detail: "Quatre titres sont en trop. Cherche le sujet du paragraphe, pas un mot isolé.", exclusive: true },
@@ -38,7 +38,7 @@ export const SKILLS: SkillInfo[] = [
   { id: "hoeren-2", module: "Hören", title: "Interview", detail: "Deux écoutes. Attention aux mots nur, nicht, immer, fast.", exclusive: false },
   { id: "hoeren-3", module: "Hören", title: "Qui le dit ?", detail: "Une seule écoute. La même personne peut revenir.", exclusive: false },
   { id: "hoeren-4", module: "Hören", title: "Exposé", detail: "Deux écoutes. Les chiffres proches sont souvent des pièges.", exclusive: false },
-  { id: "schreiben", module: "Schreiben", title: "Écrire", detail: "Quatre idées, une entrée en matière, une fin. Compte les mots.", exclusive: false },
+  { id: "schreiben", module: "Schreiben", title: "Écrire", detail: "Traite chaque point demandé, avec une entrée et une fin. Compte les mots.", exclusive: false },
   { id: "sprechen", module: "Sprechen", title: "Parler", detail: "Parle à voix haute. Les notes servent seulement à préparer.", exclusive: false },
 ];
 

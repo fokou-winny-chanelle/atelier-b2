@@ -43,6 +43,10 @@ function seriesTally(plan: NonNullable<ReturnType<typeof useLearnStore.getState>
   return { asked: correct + wrong, correct, wrong, misses };
 }
 
+function compte(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
 function letterOf(id: string): string {
   if (id === "r") return "R";
   if (id === "f") return "F";
@@ -79,16 +83,20 @@ export function PracticeScreen() {
         <p className="text-sm font-semibold uppercase tracking-wider text-[#5c4318]">Série terminée</p>
         <h1 className="mt-2 font-serif text-5xl">{plan.title}</h1>
         <p className="mt-4 text-lg leading-relaxed text-[#1c1915]">
-          {tally.asked === 0 ? "Rien à compter sur cette série." : `${tally.correct} juste${tally.correct > 1 ? "s" : ""} · ${tally.wrong} ratée${tally.wrong > 1 ? "s" : ""}.`}
+          {tally.asked === 0 ? "Pas de question fermée dans cette série. L’écrit ou l’oral est gardé à part." : `${compte(tally.correct, "juste", "justes")} · ${compte(tally.wrong, "ratée", "ratées")}.`}
         </p>
         {tally.misses.length > 0 ? (
-          <ul className="mt-4 grid gap-2">
-            {tally.misses.map((miss) => (
-              <li key={miss} className="rounded-2xl bg-white px-4 py-3 text-[#1c1915]">{miss}</li>
-            ))}
-          </ul>
+          <>
+            <p className="mt-4 font-semibold">À retenir</p>
+            <ul className="mt-2 grid gap-2">
+              {tally.misses.map((miss) => (
+                <li key={miss} className="rounded-2xl bg-white px-4 py-3 text-[#1c1915]">{miss}</li>
+              ))}
+            </ul>
+            {tally.wrong > tally.misses.length ? <p className="mt-2 text-sm text-[#5e584e]">Les autres reviennent demain aussi.</p> : null}
+          </>
         ) : null}
-        <p className="mt-4 text-[#5e584e]">Chaque erreur revient demain. Une réussite s’espace.</p>
+        <p className="mt-4 text-[#5e584e]">Une erreur revient demain. Une bonne réponse revient plus tard.</p>
         <Link href="/" onClick={() => close()} className="mt-8 inline-flex min-h-12 w-fit items-center justify-center rounded-full bg-[#16324f] px-6 font-semibold text-[#f6f1e7]">
           Retour à aujourd’hui
         </Link>
@@ -220,7 +228,7 @@ function QuestionStep({
       <div ref={answersPane} className="max-h-[55dvh] overflow-y-auto border-t border-[#ddd4c4] bg-white px-4 py-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:max-h-none lg:border-t-0 lg:border-l lg:px-6 lg:py-8">
         {!open ? (
           <p className={wrongCount === 0 ? "mb-3 rounded-2xl bg-[#e5f3eb] px-4 py-3 font-semibold text-[#145c38]" : "mb-3 rounded-2xl bg-[#f8e8e6] px-4 py-3 font-semibold text-[#8d342e]"}>
-            {wrongCount === 0 ? "Juste. Lis la raison, elle sert la prochaine fois." : `${wrongCount} à retenir. La bonne lettre est en vert, avec la raison.`}
+            {wrongCount === 0 ? "Juste. Lis pourquoi : ça sert la prochaine fois." : `${compte(wrongCount, "erreur à retenir", "erreurs à retenir")}. La bonne lettre est en vert, avec la raison.`}
           </p>
         ) : null}
         {shown.map((question) => (
@@ -283,7 +291,7 @@ function ChoiceBlock({
       </div>
       {shown && !question.example ? (
         <p className={selected === question.answer ? "mt-2 text-sm font-semibold text-[#145c38]" : "mt-2 text-sm font-semibold text-[#8d342e]"}>
-          {selected === question.answer ? "Juste. Celle-ci revient plus tard, pas demain." : `Raté. La réponse est ${letterOf(question.answer)}. Elle revient demain.`}
+          {selected === question.answer ? "Juste. Elle reviendra plus tard, pas demain." : `Raté. La bonne réponse est ${letterOf(question.answer)}. Elle revient demain.`}
         </p>
       ) : null}
       {shown && !question.example ? <p className="mt-1 text-sm leading-relaxed text-[#5e584e]">{question.explanation}</p> : null}
@@ -326,7 +334,7 @@ function ClipPlayer({
             onerror: () => {
               onRefund(clip.id);
               setBusy(false);
-              setError("La voix allemande n’a pas démarré. Réessaie, ou ajoute une voix allemande dans Windows.");
+              setError("La voix allemande n’a pas démarré. Réessaie. Sur ordinateur, vérifie qu’une voix allemande est installée.");
             },
           });
         }}
@@ -382,7 +390,7 @@ function WriteStep({ taskId, value, onChange, onNext }: { taskId: string; value:
           {words} mots · au moins {task.minWords}
         </p>
         <CriteriaMarks items={WRITING_CRITERIA} value={marks} onChange={(id, mark) => setMarks((current) => ({ ...current, [id]: mark }))} />
-        <p className="mt-2 text-sm text-[#5e584e]">Cette relecture n’est pas une note d’examinateur. Elle dit si le texte tient les quatre critères du Goethe.</p>
+        <p className="mt-2 text-sm text-[#5e584e]">Ce n’est pas une note d’examinateur. Tu dis toi-même si chaque critère tient.</p>
         <button
           type="button"
           className="mt-3 min-h-12 rounded-full bg-[#16324f] font-semibold text-[#f6f1e7] disabled:bg-[#3d5164] disabled:text-[#f6f1e7]"
@@ -461,6 +469,7 @@ function SpeakStep({ taskId, value, onChange, onNext }: { taskId: string; value:
           </button>
         </div>
         <CriteriaMarks items={SPEAKING_CRITERIA} value={marks} onChange={(id, mark) => setMarks((current) => ({ ...current, [id]: mark }))} />
+        <p className="mt-2 text-sm text-[#5e584e]">Ce n’est pas une note d’examinateur. Tu dis toi-même si chaque critère tient.</p>
         <button
           type="button"
           className="mt-3 min-h-12 rounded-full bg-[#16324f] font-semibold text-[#f6f1e7]"

@@ -107,7 +107,7 @@ export const useLearnStore = create<LearnState>()(
             id: crypto.randomUUID(),
             kind: "review",
             title: "Erreurs de l’examen",
-            blurb: "Les questions ratées au blanc, puis la correction.",
+            blurb: "Les questions ratées à l’examen blanc, avec la correction.",
             steps,
             index: 0,
             answers: {},
