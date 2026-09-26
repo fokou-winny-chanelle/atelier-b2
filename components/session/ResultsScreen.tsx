@@ -185,7 +185,7 @@ function ModuleReview({ phase, exam, session }: { phase: ClosedModuleId; exam: E
             </h3>
             {part.clips.map((clip) => (
               <details key={clip.id}>
-                <summary>Transcription · {clip.label}</summary>
+                <summary>Texte entendu · {clip.label}</summary>
                 <p>{clip.script}</p>
               </details>
             ))}

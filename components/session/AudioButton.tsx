@@ -52,7 +52,12 @@ export function AudioButton({
       </p>
       <p className="audio-note">Ohne Vorspulen. In der Prüfung kann der Text nicht angehalten werden.</p>
       {error ? <p className="audio-error">{error}</p> : null}
-      {showScript ? <p className="transcript">{clip.script}</p> : null}
+      {showScript ? (
+        <>
+          <p className="audio-note">Texte entendu</p>
+          <p className="transcript">{clip.script}</p>
+        </>
+      ) : null}
     </div>
   );
 }

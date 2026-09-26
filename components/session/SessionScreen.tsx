@@ -9,7 +9,7 @@ import { useHydrated } from "@/components/useHydrated";
 import { getExam } from "@/lib/exams";
 import { countWords, unansweredInPart } from "@/lib/scoring";
 import { useExamStore } from "@/lib/store";
-import type { ModuleId, Part, Question, Session } from "@/lib/types";
+import type { Mode, ModuleId, Part, Question, Session } from "@/lib/types";
 import { MODULE_LABEL } from "@/lib/types";
 
 const UMLAUTS = ["ä", "ö", "ü", "ß", "Ä", "Ö", "Ü"] as const;
@@ -270,7 +270,7 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
         />
       ) : null}
 
-      {helpOpen ? <Help moduleId={moduleId} onClose={() => setHelpOpen(false)} /> : null}
+      {helpOpen ? <Help moduleId={moduleId} mode={session.mode} onClose={() => setHelpOpen(false)} /> : null}
     </div>
   );
 }
@@ -338,6 +338,10 @@ function ClosedModule({
       <section className="col stimulus" style={{ flexBasis: `${leftPct}%` }} onCopy={(event) => session.mode === "pruefung" && event.preventDefault()}>
         <p className="instruction">{part.instruction}</p>
         <p className="hint-time">Vorgeschlagene Zeit für diesen Teil: {part.suggestedMinutes} Minuten. Die Uhr oben gilt für das ganze Modul {MODULE_LABEL[moduleId]}.</p>
+        {moduleId === "hoeren" ? <p className="hint-time">{heardCue(session.mode, revealed)}</p> : null}
+        {moduleId === "lesen" && part.exclusive && !revealed ? (
+          <p className="hint-time">Une lettre ne sert qu’une fois. Si tu la recoches, elle quitte l’autre question.</p>
+        ) : null}
         {part.stimuli.map((stimulus) => {
           const clip = stimulus.audioId ? clips.get(stimulus.audioId) : undefined;
           return (
@@ -367,7 +371,7 @@ function ClosedModule({
                   sessionId={session.id}
                   clip={clip}
                   plays={session.audioPlays[clip.id] ?? 0}
-                  showScript={session.mode === "uebung" && (session.audioPlays[clip.id] ?? 0) >= clip.maxPlays}
+                  showScript={session.mode === "uebung" && revealed}
                 />
               ) : null}
             </article>
@@ -502,6 +506,11 @@ function WritingRoom({
             ))}
           </ul>
           <p>{task.closingNote}</p>
+          <p className="hint-time">
+            {session.mode === "pruefung"
+              ? "Coller est bloqué. Ce texte n’est pas noté ici : à la fin, tu coches les points traités."
+              : "Pause arrête l’horloge. Ce texte n’est pas noté ici : à la fin, tu coches les points traités."}
+          </p>
         </div>
       </section>
       <Gutter leftPct={leftPct} setLeftPct={setLeftPct} />
@@ -547,6 +556,7 @@ function SpeakingRoom({
             ))}
           </ul>
           <p className="why">{task.coach}</p>
+          <p className="hint-time">Les notes ne sont pas le discours. L’horloge en haut compte le module. À l’examen, les 15 minutes de préparation se font avant d’entrer.</p>
         </div>
       </section>
       <Gutter leftPct={leftPct} setLeftPct={setLeftPct} />
@@ -818,9 +828,15 @@ function ConfirmLeave({
   );
 }
 
-function Help({ moduleId, onClose }: { moduleId: ModuleId; onClose: () => void }) {
-  const phone = HELP_PHONE[moduleId];
-  const desk = HELP_DESK[moduleId];
+function heardCue(mode: Mode, revealed: boolean): string {
+  if (revealed) return "Le texte entendu est sous Audio starten. La raison est sous chaque question.";
+  if (mode === "pruefung") return "Le texte entendu reste caché jusqu’à la page de résultat. Lis les questions, puis Audio starten.";
+  return "Le texte entendu reste caché, comme à l’examen. Il apparaît sous Audio starten après Teil korrigieren.";
+}
+
+function Help({ moduleId, mode, onClose }: { moduleId: ModuleId; mode: Mode; onClose: () => void }) {
+  const phone = helpLines(moduleId, mode, true);
+  const desk = helpLines(moduleId, mode, false);
   return (
     <dialog open className="sheet wide">
       <header className="sheet-head">
@@ -843,66 +859,30 @@ function Help({ moduleId, onClose }: { moduleId: ModuleId; onClose: () => void }
   );
 }
 
-const HELP_PHONE: Record<ModuleId, string[]> = {
-  lesen: [
-    "Sur le téléphone, Texte et Questions sont deux écrans. Touche le bandeau sous le titre pour passer de l’un à l’autre.",
-    "Lis le texte, puis ouvre Questions. Une seule case par question.",
-    "Dans les trous et les titres, une lettre ne sert qu’une fois. Si tu la recoches, elle quitte l’autre question.",
-    "Markieren garde une question pour plus tard. Übersicht ouvre la grille : vert = répondu, jaune = marqué, blanc = ouvert. Un numéro te ramène sur Questions.",
-    "Textmarker : active l’outil dans la barre du bas, reviens sur Texte, sélectionne un passage. Touche le surlignage pour l’enlever.",
-    "Zurück recule. Nächster Teil avance. Chaque réponse est enregistrée dans ce navigateur.",
-  ],
-  hoeren: [
-    "Sur le téléphone, l’écoute est sur Texte et les questions sur Questions. Touche le bandeau pour changer.",
-    "Lance Écouter avant d’ouvrir les questions. Le nombre d’écoutes est limité.",
-    "En entraînement, la transcription apparaît sur Texte après la dernière écoute. En examen, elle reste cachée.",
-    "Une seule case par question. La même personne peut revenir.",
-    "Markieren et Übersicht servent à retrouver une question. Un numéro ouvre Questions.",
-    "Zurück recule. Nächster Teil avance. Chaque réponse est enregistrée dans ce navigateur.",
-  ],
-  schreiben: [
-    "Sur le téléphone, la consigne est sur Texte et ton texte sur Questions.",
-    "Le compteur de mots est sous le champ, sur Questions. Le minimum est indiqué à côté.",
-    "Les boutons ä ö ü ß, dans la barre du bas, insèrent le signe là où est le curseur. Touche d’abord le texte.",
-    "En examen, coller est bloqué. En entraînement, Pause dans la barre du bas arrête le temps.",
-    "Chaque Teil a sa consigne. Nächster Teil passe à la tâche suivante.",
-    "Le texte est enregistré dans ce navigateur au fur et à mesure.",
-  ],
-  sprechen: [
-    "Sur le téléphone, la situation est sur Texte et tes notes sur Questions.",
-    "Tu prépares ta prise de parole. Ces notes ne sont pas une note d’examinateur.",
-    "Le temps en haut compte la durée du module. À l’examen, la préparation dure 15 minutes avant d’entrer.",
-    "Chaque Teil change de situation. Nächster Teil est dans la barre du bas.",
-    "Tes notes restent dans ce navigateur.",
-  ],
-};
-
-const HELP_DESK: Record<ModuleId, string[]> = {
-  lesen: [
-    "Le texte reste à gauche, les questions à droite. Chaque colonne défile seule. Tu peux tirer la barre entre les deux.",
-    "Une seule case par question. Dans les trous et les titres, une lettre ne sert qu’une fois. Si tu la recoches, elle quitte l’autre question.",
-    "Markieren garde une question. Übersicht montre le vert, le blanc et le jaune, puis saute à la question.",
-    "Textmarker : active l’outil, sélectionne un passage à gauche, clique le surlignage pour l’enlever.",
-    "Zurück recule. Nächster Teil avance. Chaque réponse est enregistrée dans ce navigateur.",
-  ],
-  hoeren: [
-    "Le lecteur est à gauche, les questions à droite. Chaque colonne défile seule.",
-    "Le bouton joue le texte une fois ou deux, sans avance rapide.",
-    "En entraînement, la transcription apparaît à gauche après la dernière écoute. En examen, elle reste cachée.",
-    "Une seule case par question. Markieren et Übersicht servent à revenir sur une question.",
-    "Zurück recule. Nächster Teil avance. Chaque réponse est enregistrée dans ce navigateur.",
-  ],
-  schreiben: [
-    "La consigne est à gauche, ton texte à droite. Tu peux tirer la barre entre les deux.",
-    "Le compteur de mots est sous le champ. Le minimum est indiqué à côté.",
-    "Les boutons ä ö ü ß insèrent le signe là où est le curseur. Clique d’abord dans le texte.",
-    "En examen, coller est bloqué. En entraînement, Pause arrête le temps.",
-    "Nächster Teil passe à la tâche suivante. Le texte est enregistré dans ce navigateur.",
-  ],
-  sprechen: [
-    "La situation est à gauche, tes notes à droite. Tu peux tirer la barre entre les deux.",
-    "Tu prépares ta prise de parole. Ces notes ne sont pas une note d’examinateur.",
-    "Le temps en haut compte la durée du module. À l’examen, la préparation dure 15 minutes avant d’entrer.",
-    "Nächster Teil change de situation. Tes notes restent dans ce navigateur.",
-  ],
-};
+function helpLines(moduleId: ModuleId, mode: Mode, phone: boolean): string[] {
+  const place = phone ? "Texte et Questions sont deux écrans. Touche le bandeau sous le titre pour passer de l’un à l’autre." : "Le texte est à gauche, les questions à droite. Chaque colonne défile seule. Tu peux tirer la barre entre les deux.";
+  if (moduleId === "hoeren") {
+    const audio =
+      mode === "pruefung"
+        ? "Audio starten joue le texte une ou deux fois, sans pause. Le texte entendu reste caché jusqu’à la page de résultat."
+        : `Audio starten joue le texte une ou deux fois, sans pause. Le texte entendu reste caché. Il apparaît ${phone ? "sur Texte" : "à gauche"} après Teil korrigieren, dans la barre du bas.`;
+    return [place, audio, "Lis les questions, écoute, puis coche. Markieren garde une question. Übersicht : vert = répondu, jaune = marqué."];
+  }
+  if (moduleId === "lesen") {
+    const correction =
+      mode === "pruefung"
+        ? "La correction attend la page de résultat. Textmarker, dans la barre du bas : active-le, reviens au texte, sélectionne un passage."
+        : "Teil korrigieren, dans la barre du bas, montre la bonne lettre et la raison. Textmarker : active-le, reviens au texte, sélectionne un passage.";
+    return [place, "Une seule case par question. Dans les trous et les titres, une lettre ne sert qu’une fois : la recocher l’enlève ailleurs.", correction];
+  }
+  if (moduleId === "schreiben") {
+    const where = phone ? "La consigne est sur Texte, ton texte sur Questions. Le compteur est sous le champ." : "La consigne est à gauche, ton texte à droite. Le compteur est sous le champ.";
+    const grade =
+      mode === "pruefung"
+        ? "Coller est bloqué. Ce texte n’est pas noté ici : à la fin, tu coches les points que tu as vraiment traités."
+        : "Pause, dans la barre du bas, arrête l’horloge. Ce texte n’est pas noté ici : à la fin, tu coches les points que tu as vraiment traités.";
+    return [where, "ä ö ü ß s’insèrent là où est le curseur. Touche d’abord le texte.", grade];
+  }
+  const where = phone ? "La situation est sur Texte, tes notes sur Questions." : "La situation est à gauche, tes notes à droite.";
+  return [where, "Les notes ne sont pas le discours. L’horloge en haut compte le module. À l’examen, les 15 minutes de préparation se font avant d’entrer.", "Nächster Teil change de situation. À la fin, les notes restent. Elles ne deviennent pas une note."];
+}

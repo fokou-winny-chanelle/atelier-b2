@@ -231,6 +231,9 @@ function QuestionStep({
             {wrongCount === 0 ? "Juste. Lis pourquoi : ça sert la prochaine fois." : `${compte(wrongCount, "erreur à retenir", "erreurs à retenir")}. La bonne lettre est en vert, avec la raison.`}
           </p>
         ) : null}
+        {part.exclusive && open ? (
+          <p className="mb-3 text-sm leading-relaxed text-[#5e584e]">Une lettre ne sert qu’une fois. La recocher l’enlève de l’autre question.</p>
+        ) : null}
         {shown.map((question) => (
           <ChoiceBlock key={question.id} question={question} selected={answers[question.id]} shown={Boolean(revealed[question.id])} onSelect={select} />
         ))}
@@ -320,6 +323,9 @@ function ClipPlayer({
 
   return (
     <div className="mt-3">
+      <p className="mb-2 text-sm leading-relaxed text-[#5e584e]">
+        {showScript ? "Texte entendu, après ta réponse." : "Le texte entendu apparaît ici après Vérifier. Écoute, coche, puis vérifie."}
+      </p>
       <button
         type="button"
         disabled={left <= 0 || busy}
