@@ -389,6 +389,7 @@ function ClipPlayer({
   return (
     <div className="mt-3">
       <p className="mb-2 text-sm leading-relaxed text-[#5e584e]">{cue}</p>
+      {busy ? <p className="mb-2 text-sm leading-relaxed text-[#5e584e]">Sur iPhone, monte le volume maintenant. Ce bouton règle le son des médias, pas la sonnerie.</p> : null}
       <button
         type="button"
         disabled={phase === "done" || busy}

@@ -80,7 +80,7 @@ export function AudioButton({
         {label}
       </button>
       <p className="audio-meta">{withText ? "Einmal mit Text" : `${clip.maxPlays === 1 ? "Einmal hörbar" : "Zweimal hörbar"} · noch ${left}`}</p>
-      <p className="audio-note">Ohne Vorspulen. In der Prüfung kann der Text nicht angehalten werden.</p>
+      <p className="audio-note">Ohne Vorspulen. In der Prüfung kann der Text nicht angehalten werden. Auf dem iPhone die Lautstärke während der Wiedergabe stellen.</p>
       {error ? <p className="audio-error">{error}</p> : null}
       {showScript ? (
         <>

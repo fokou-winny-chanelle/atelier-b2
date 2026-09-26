@@ -7,9 +7,36 @@ function onPhone(): boolean {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 }
 
-function germanVoice(synth: SpeechSynthesis): SpeechSynthesisVoice | null {
-  const voices = synth.getVoices().filter((voice) => voice.lang.toLowerCase().startsWith("de"));
-  return voices.find((voice) => voice.localService) ?? voices[0] ?? null;
+export function isIosUserAgent(userAgent: string, platform = "", maxTouchPoints = 0): boolean {
+  if (/iPhone|iPad|iPod/i.test(userAgent)) return true;
+  return platform === "MacIntel" && maxTouchPoints > 1;
+}
+
+function onIos(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return isIosUserAgent(navigator.userAgent, navigator.platform, navigator.maxTouchPoints);
+}
+
+export function pickGermanVoice<T extends { lang: string; localService: boolean }>(voices: T[], ios: boolean): T | null {
+  const german = voices.filter((voice) => voice.lang.toLowerCase().startsWith("de"));
+  const local = german.find((voice) => voice.localService);
+  if (ios) return local ?? null;
+  return local ?? german[0] ?? null;
+}
+
+/** iPhone spoken voice follows the ringer, so the volume buttons do nothing. Playback uses the media volume instead. */
+function useMediaVolume(): void {
+  const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+  if (!session) return;
+  try {
+    session.type = "playback";
+  } catch {
+    /* The assignment is only accepted inside the tap that starts speech. */
+  }
+}
+
+function germanVoice(synth: SpeechSynthesis, ios: boolean): SpeechSynthesisVoice | null {
+  return pickGermanVoice(synth.getVoices(), ios);
 }
 
 function chunksOf(text: string): string[] {
@@ -65,21 +92,27 @@ export function speakGerman(
   }
 
   const phone = onPhone();
+  const ios = onIos();
   const chunks = chunksOf(text);
-  const voice = germanVoice(synth);
+  const voice = germanVoice(synth, ios);
   let index = 0;
   let stopped = false;
 
+  if (ios) useMediaVolume();
   releaseCurrent?.();
   releaseCurrent = null;
 
-  const keepalive = phone
-    ? 0
-    : window.setInterval(() => {
-        if (stopped || !synth.speaking || synth.paused) return;
-        synth.pause();
-        synth.resume();
-      }, 10000);
+  const keepalive = ios
+    ? window.setInterval(() => {
+        if (!stopped) synth.resume();
+      }, 8000)
+    : phone
+      ? 0
+      : window.setInterval(() => {
+          if (stopped || !synth.speaking || synth.paused) return;
+          synth.pause();
+          synth.resume();
+        }, 10000);
 
   const release = () => {
     if (stopped) return;
@@ -99,18 +132,17 @@ export function speakGerman(
     else handlers.onerror();
   };
 
-  const speakNext = () => {
-    if (stopped) return;
-    if (index >= chunks.length) {
-      finish(true);
-      return;
-    }
-    const utterance = new SpeechSynthesisUtterance(chunks[index] ?? "");
-    index += 1;
+  const speakChunk = (chunk: string, last: boolean) => {
+    const utterance = new SpeechSynthesisUtterance(chunk);
     utterance.lang = "de-DE";
-    utterance.rate = 0.95;
+    utterance.volume = 1;
+    utterance.rate = ios ? 1 : 0.95;
     if (voice) utterance.voice = voice;
-    utterance.onend = speakNext;
+    utterance.onend = () => {
+      if (stopped) return;
+      if (last) finish(true);
+      else speakNext();
+    };
     utterance.onerror = (event) => {
       if (stopped) return;
       if (event.error === "interrupted" || event.error === "canceled") {
@@ -119,14 +151,26 @@ export function speakGerman(
       }
       finish(false);
     };
+    synth.speak(utterance);
+  };
+
+  const speakNext = () => {
+    if (stopped) return;
+    if (index >= chunks.length) {
+      finish(true);
+      return;
+    }
+    const chunk = chunks[index] ?? "";
+    const last = index === chunks.length - 1;
+    index += 1;
     try {
-      synth.speak(utterance);
+      speakChunk(chunk, last);
     } catch {
       finish(false);
     }
   };
 
-  if (phone || synth.paused) synth.resume();
+  if (synth.paused) synth.resume();
   if (!phone && (synth.speaking || synth.pending)) synth.cancel();
   speakNext();
 
