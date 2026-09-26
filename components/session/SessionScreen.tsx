@@ -338,7 +338,15 @@ function ClosedModule({
       <section className="col stimulus" style={{ flexBasis: `${leftPct}%` }} onCopy={(event) => session.mode === "pruefung" && event.preventDefault()}>
         <p className="instruction">{part.instruction}</p>
         <p className="hint-time">Vorgeschlagene Zeit für diesen Teil: {part.suggestedMinutes} Minuten. Die Uhr oben gilt für das ganze Modul {MODULE_LABEL[moduleId]}.</p>
-        {moduleId === "hoeren" ? <p className="hint-time">{heardCue(session.mode, revealed)}</p> : null}
+        {moduleId === "hoeren" ? (
+          <p className="hint-time">
+            {heardCue(
+              session.mode,
+              revealed,
+              part.clips.some((clip) => (session.reviewPlays?.[clip.id] ?? 0) < 1),
+            )}
+          </p>
+        ) : null}
         {moduleId === "lesen" && part.exclusive && !revealed ? (
           <p className="hint-time">Une lettre ne sert qu’une fois. Si tu la recoches, elle quitte l’autre question.</p>
         ) : null}
@@ -371,6 +379,8 @@ function ClosedModule({
                   sessionId={session.id}
                   clip={clip}
                   plays={session.audioPlays[clip.id] ?? 0}
+                  reviewPlays={session.reviewPlays?.[clip.id] ?? 0}
+                  revealed={session.mode === "uebung" && revealed}
                   showScript={session.mode === "uebung" && revealed}
                 />
               ) : null}
@@ -828,10 +838,11 @@ function ConfirmLeave({
   );
 }
 
-function heardCue(mode: Mode, revealed: boolean): string {
-  if (revealed) return "Le texte entendu est sous Audio starten. La raison est sous chaque question.";
+function heardCue(mode: Mode, revealed: boolean, reviewOpen: boolean): string {
   if (mode === "pruefung") return "Le texte entendu reste caché jusqu’à la page de résultat. Lis les questions, puis Audio starten.";
-  return "Le texte entendu reste caché, comme à l’examen. Il apparaît sous Audio starten après Teil korrigieren.";
+  if (!revealed) return "Le texte entendu reste caché, comme à l’examen. Après Teil korrigieren, il apparaît et Nochmal hören le relit une fois.";
+  if (reviewOpen) return "Le texte est sous le lecteur. Nochmal hören le relit une fois, pendant que tu suis.";
+  return "La relecture est faite. La raison est sous chaque question.";
 }
 
 function Help({ moduleId, mode, onClose }: { moduleId: ModuleId; mode: Mode; onClose: () => void }) {
@@ -865,7 +876,7 @@ function helpLines(moduleId: ModuleId, mode: Mode, phone: boolean): string[] {
     const audio =
       mode === "pruefung"
         ? "Audio starten joue le texte une ou deux fois, sans pause. Le texte entendu reste caché jusqu’à la page de résultat."
-        : `Audio starten joue le texte une ou deux fois, sans pause. Le texte entendu reste caché. Il apparaît ${phone ? "sur Texte" : "à gauche"} après Teil korrigieren, dans la barre du bas.`;
+        : `Audio starten joue le texte une ou deux fois, sans le texte. Après Teil korrigieren, le texte apparaît ${phone ? "sur Texte" : "à gauche"} et Nochmal hören le relit une fois.`;
     return [place, audio, "Lis les questions, écoute, puis coche. Markieren garde une question. Übersicht : vert = répondu, jaune = marqué."];
   }
   if (moduleId === "lesen") {

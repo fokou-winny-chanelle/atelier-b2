@@ -118,6 +118,7 @@ export interface Session {
   flags: Record<string, boolean>;
   highlights: HighlightMark[];
   audioPlays: Record<string, number>;
+  reviewPlays: Record<string, number>;
   writings: Record<string, string>;
   notes: Record<string, string>;
   revealedParts: string[];

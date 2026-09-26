@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { browserStorage } from "./persist-storage";
+import type { ListenKind } from "./listen";
 import type { HighlightMark, Mode, ModuleId, Session } from "./types";
 
 interface CreateInput {
@@ -24,8 +25,8 @@ interface ExamState {
   toggleFlag: (sessionId: string, questionId: string) => void;
   addHighlight: (sessionId: string, mark: HighlightMark) => void;
   removeHighlight: (sessionId: string, markId: string) => void;
-  bumpAudio: (sessionId: string, audioId: string) => void;
-  refundAudio: (sessionId: string, audioId: string) => void;
+  bumpAudio: (sessionId: string, audioId: string, kind: ListenKind) => void;
+  refundAudio: (sessionId: string, audioId: string, kind: ListenKind) => void;
   setWriting: (sessionId: string, taskId: string, value: string) => void;
   setNote: (sessionId: string, taskId: string, value: string) => void;
   setPartIndex: (sessionId: string, index: number) => void;
@@ -70,6 +71,7 @@ export const useExamStore = create<ExamState>()(
               flags: {},
               highlights: [],
               audioPlays: {},
+              reviewPlays: {},
               writings: {},
               notes: {},
               revealedParts: [],
@@ -115,22 +117,41 @@ export const useExamStore = create<ExamState>()(
             highlights: session.highlights.filter((item) => item.id !== markId),
           })),
         })),
-      bumpAudio: (sessionId, audioId) =>
+      bumpAudio: (sessionId, audioId, kind) =>
         set((state) => ({
-          sessions: patch(state.sessions, sessionId, (session) => ({
-            ...session,
-            audioPlays: { ...session.audioPlays, [audioId]: (session.audioPlays[audioId] ?? 0) + 1 },
-          })),
+          sessions: patch(state.sessions, sessionId, (session) => {
+            if (kind === "review") {
+              if (session.mode !== "uebung") return session;
+              const used = session.reviewPlays?.[audioId] ?? 0;
+              if (used >= 1) return session;
+              return { ...session, reviewPlays: { ...(session.reviewPlays ?? {}), [audioId]: used + 1 } };
+            }
+            return {
+              ...session,
+              audioPlays: { ...session.audioPlays, [audioId]: (session.audioPlays[audioId] ?? 0) + 1 },
+            };
+          }),
         })),
-      refundAudio: (sessionId, audioId) =>
+      refundAudio: (sessionId, audioId, kind) =>
         set((state) => ({
-          sessions: patch(state.sessions, sessionId, (session) => ({
-            ...session,
-            audioPlays: {
-              ...session.audioPlays,
-              [audioId]: Math.max(0, (session.audioPlays[audioId] ?? 1) - 1),
-            },
-          })),
+          sessions: patch(state.sessions, sessionId, (session) => {
+            if (kind === "review") {
+              return {
+                ...session,
+                reviewPlays: {
+                  ...(session.reviewPlays ?? {}),
+                  [audioId]: Math.max(0, (session.reviewPlays?.[audioId] ?? 0) - 1),
+                },
+              };
+            }
+            return {
+              ...session,
+              audioPlays: {
+                ...session.audioPlays,
+                [audioId]: Math.max(0, (session.audioPlays[audioId] ?? 1) - 1),
+              },
+            };
+          }),
         })),
       setWriting: (sessionId, taskId, value) =>
         set((state) => ({
@@ -221,6 +242,18 @@ export const useExamStore = create<ExamState>()(
           return { sessions };
         }),
     }),
-    { name: "atelier-b2-v1", version: 1, storage: browserStorage() },
+    {
+      name: "atelier-b2-v1",
+      version: 2,
+      storage: browserStorage(),
+      migrate: (persisted) => {
+        const state = (persisted ?? {}) as { candidate?: string; sessions?: Record<string, Session> };
+        const sessions: Record<string, Session> = {};
+        for (const [id, session] of Object.entries(state.sessions ?? {})) {
+          sessions[id] = { ...session, reviewPlays: session.reviewPlays ?? {} };
+        }
+        return { candidate: state.candidate ?? "", sessions };
+      },
+    },
   ),
 );

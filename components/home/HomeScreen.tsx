@@ -129,7 +129,7 @@ export function HomeScreen() {
         <section className="mt-8">
           <h2 className="font-serif text-3xl">Examen blanc</h2>
           <p className="mt-2 max-w-3xl text-base leading-relaxed text-[#5e584e]">
-            L’examen écrit cache la correction et le texte entendu jusqu’au résultat. Avec correction, tu réponds d’abord comme à l’examen, puis Teil korrigieren montre la lettre et le texte. Les questions ratées reviennent ensuite dans les révisions. Pour aujourd’hui : {hydrated ? today.blurb : "…"}.
+            L’examen écrit cache la correction et le texte entendu jusqu’au résultat. Avec correction, tu réponds d’abord comme à l’examen, puis Teil korrigieren montre la lettre, le texte, et une relecture. Les questions ratées reviennent ensuite dans les révisions. Pour aujourd’hui : {hydrated ? today.blurb : "…"}.
           </p>
           {recent.length > 0 ? (
             <ul className="mt-4 grid gap-2">

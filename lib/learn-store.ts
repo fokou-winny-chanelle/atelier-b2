@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { ListenKind } from "./listen";
 import { browserStorage } from "./persist-storage";
 import { poolBlocks, poolCards, poolSpeaks, poolWrites } from "./catalog";
 import { EXAMS } from "./exams";
@@ -18,6 +19,7 @@ export interface ActivePlan {
   answers: Record<string, string>;
   revealed: Record<string, boolean>;
   audioPlays: Record<string, number>;
+  reviewPlays: Record<string, number>;
   startedAt: number;
   finishedAt: number | null;
 }
@@ -36,8 +38,8 @@ interface LearnState {
   saveProduction: (input: Omit<ProductionRecord, "id">) => void;
   answer: (questionId: string, choiceId: string) => void;
   reveal: (questionIds: string[]) => void;
-  bumpAudio: (audioId: string) => void;
-  refundAudio: (audioId: string) => void;
+  bumpAudio: (audioId: string, kind?: ListenKind) => void;
+  refundAudio: (audioId: string, kind?: ListenKind) => void;
   next: () => void;
   back: () => void;
   close: () => void;
@@ -66,6 +68,7 @@ function makePlan(kind: "daily" | "review" | "skill", memory: Record<string, Mem
     answers: {},
     revealed: {},
     audioPlays: {},
+    reviewPlays: {},
     startedAt: now,
     finishedAt: null,
   };
@@ -113,6 +116,7 @@ export const useLearnStore = create<LearnState>()(
             answers: {},
             revealed: {},
             audioPlays: {},
+            reviewPlays: {},
             startedAt: Date.now(),
             finishedAt: null,
           },
@@ -158,31 +162,50 @@ export const useLearnStore = create<LearnState>()(
           }
           return { memory, plan: { ...state.plan, revealed } };
         }),
-      bumpAudio: (audioId) =>
-        set((state) =>
-          state.plan
-            ? {
-                plan: {
-                  ...state.plan,
-                  audioPlays: { ...state.plan.audioPlays, [audioId]: (state.plan.audioPlays[audioId] ?? 0) + 1 },
+      bumpAudio: (audioId, kind = "attempt") =>
+        set((state) => {
+          if (!state.plan) return {};
+          if (kind === "review") {
+            const used = state.plan.reviewPlays?.[audioId] ?? 0;
+            if (used >= 1) return {};
+            return {
+              plan: {
+                ...state.plan,
+                reviewPlays: { ...(state.plan.reviewPlays ?? {}), [audioId]: used + 1 },
+              },
+            };
+          }
+          return {
+            plan: {
+              ...state.plan,
+              audioPlays: { ...state.plan.audioPlays, [audioId]: (state.plan.audioPlays[audioId] ?? 0) + 1 },
+            },
+          };
+        }),
+      refundAudio: (audioId, kind = "attempt") =>
+        set((state) => {
+          if (!state.plan) return {};
+          if (kind === "review") {
+            return {
+              plan: {
+                ...state.plan,
+                reviewPlays: {
+                  ...(state.plan.reviewPlays ?? {}),
+                  [audioId]: Math.max(0, (state.plan.reviewPlays?.[audioId] ?? 0) - 1),
                 },
-              }
-            : {},
-        ),
-      refundAudio: (audioId) =>
-        set((state) =>
-          state.plan
-            ? {
-                plan: {
-                  ...state.plan,
-                  audioPlays: {
-                    ...state.plan.audioPlays,
-                    [audioId]: Math.max(0, (state.plan.audioPlays[audioId] ?? 1) - 1),
-                  },
-                },
-              }
-            : {},
-        ),
+              },
+            };
+          }
+          return {
+            plan: {
+              ...state.plan,
+              audioPlays: {
+                ...state.plan.audioPlays,
+                [audioId]: Math.max(0, (state.plan.audioPlays[audioId] ?? 1) - 1),
+              },
+            },
+          };
+        }),
       next: () =>
         set((state) => {
           if (!state.plan) return {};
@@ -203,14 +226,17 @@ export const useLearnStore = create<LearnState>()(
     }),
     {
       name: "atelier-b2-learn-v1",
-      version: 2,
+      version: 3,
       storage: browserStorage(),
       migrate: (persisted) => {
         const state = persisted as Partial<LearnState>;
+        const plan = state.plan
+          ? { ...state.plan, audioPlays: state.plan.audioPlays ?? {}, reviewPlays: state.plan.reviewPlays ?? {} }
+          : null;
         return {
           memory: state.memory ?? {},
           days: state.days ?? [],
-          plan: state.plan ?? null,
+          plan,
           mocks: state.mocks ?? [],
           productions: state.productions ?? [],
           absorbed: state.absorbed ?? [],

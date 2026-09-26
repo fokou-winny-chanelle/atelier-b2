@@ -9,6 +9,7 @@ import { locatePart, locateSpeaking, locateWriting } from "@/lib/catalog";
 import { SPEAKING_CRITERIA, WRITING_CRITERIA, type CriterionMark } from "@/lib/criteria";
 import { heldCount } from "@/lib/readiness";
 import { useLearnStore } from "@/lib/learn-store";
+import { listenPhase, type ListenKind } from "@/lib/listen";
 import { speakGerman, type SpeakHandle } from "@/lib/speak";
 import { countWords } from "@/lib/scoring";
 import type { AudioClip, Part, Question, SpeakingTask, WritingTask } from "@/lib/types";
@@ -142,6 +143,7 @@ export function PracticeScreen() {
           answers={plan.answers}
           revealed={plan.revealed}
           audioPlays={plan.audioPlays}
+          reviewPlays={plan.reviewPlays ?? {}}
           onAnswer={answer}
           onReveal={reveal}
           onNext={next}
@@ -161,6 +163,7 @@ function QuestionStep({
   answers,
   revealed,
   audioPlays,
+  reviewPlays,
   onAnswer,
   onReveal,
   onNext,
@@ -172,11 +175,12 @@ function QuestionStep({
   answers: Record<string, string>;
   revealed: Record<string, boolean>;
   audioPlays: Record<string, number>;
+  reviewPlays: Record<string, number>;
   onAnswer: (questionId: string, choiceId: string) => void;
   onReveal: (questionIds: string[]) => void;
   onNext: () => void;
-  onPlay: (audioId: string) => void;
-  onRefund: (audioId: string) => void;
+  onPlay: (audioId: string, kind: ListenKind) => void;
+  onRefund: (audioId: string, kind: ListenKind) => void;
 }) {
   const located = locatePart(partId);
   const scroller = useRef<HTMLDivElement>(null);
@@ -220,7 +224,16 @@ function QuestionStep({
               {stimulus.kicker ? <p className="text-xs font-semibold uppercase tracking-wider text-[#5c4318]">{stimulus.kicker}</p> : null}
               {stimulus.title ? <h2 className="font-serif text-3xl">{stimulus.title}</h2> : null}
               <p className="mt-3 whitespace-pre-wrap font-serif text-xl leading-relaxed">{filledBody(stimulus.body, part.questions, answers)}</p>
-              {clip ? <ClipPlayer clip={clip} plays={audioPlays[clip.id] ?? 0} showScript={!open} onPlay={onPlay} onRefund={onRefund} /> : null}
+              {clip ? (
+                <ClipPlayer
+                  clip={clip}
+                  plays={audioPlays[clip.id] ?? 0}
+                  reviewPlays={reviewPlays[clip.id] ?? 0}
+                  showScript={!open}
+                  onPlay={onPlay}
+                  onRefund={onRefund}
+                />
+              ) : null}
             </article>
           );
         })}
@@ -305,47 +318,61 @@ function ChoiceBlock({
 function ClipPlayer({
   clip,
   plays,
+  reviewPlays,
   showScript,
   onPlay,
   onRefund,
 }: {
   clip: AudioClip;
   plays: number;
+  reviewPlays: number;
   showScript: boolean;
-  onPlay: (audioId: string) => void;
-  onRefund: (audioId: string) => void;
+  onPlay: (audioId: string, kind: ListenKind) => void;
+  onRefund: (audioId: string, kind: ListenKind) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const handle = useRef<SpeakHandle | null>(null);
+  const charged = useRef<ListenKind | null>(null);
+  const phase = listenPhase({ revealed: showScript, attemptPlays: plays, maxPlays: clip.maxPlays, reviewPlays });
   const left = Math.max(0, clip.maxPlays - plays);
   useEffect(() => () => handle.current?.cancel(), []);
+  const cue =
+    phase === "review"
+      ? "Texte entendu. Réécouter le lit encore une fois, pendant que tu suis."
+      : showScript
+        ? "Texte entendu. La relecture est faite."
+        : "Le texte reste caché. Après Vérifier, il apparaît et tu peux le réécouter une fois.";
 
   return (
     <div className="mt-3">
-      <p className="mb-2 text-sm leading-relaxed text-[#5e584e]">
-        {showScript ? "Texte entendu, après ta réponse." : "Le texte entendu apparaît ici après Vérifier. Écoute, coche, puis vérifie."}
-      </p>
+      <p className="mb-2 text-sm leading-relaxed text-[#5e584e]">{cue}</p>
       <button
         type="button"
-        disabled={left <= 0 || busy}
+        disabled={phase === "done" || busy}
         className="min-h-12 rounded-full bg-[#16324f] px-4 font-semibold text-[#f6f1e7] disabled:bg-[#3d5164] disabled:text-[#f6f1e7]"
         onClick={() => {
-          if (left <= 0 || busy) return;
+          if (phase === "done" || busy) return;
+          const kind: ListenKind = phase === "review" ? "review" : "attempt";
           setError("");
-          onPlay(clip.id);
+          charged.current = kind;
+          onPlay(clip.id, kind);
           setBusy(true);
           handle.current = speakGerman(clip.script, {
-            onend: () => setBusy(false),
+            onend: () => {
+              charged.current = null;
+              setBusy(false);
+            },
             onerror: () => {
-              onRefund(clip.id);
+              if (charged.current) onRefund(clip.id, charged.current);
+              charged.current = null;
               setBusy(false);
               setError("La voix n’a pas démarré. Monte le volume, coupe le mode silencieux, puis réessaie.");
             },
           });
         }}
       >
-        {busy ? "Écoute…" : left > 0 ? `Écouter · encore ${left}` : "Écoute terminée"}
+        {busy ? "Écoute…" : phase === "review" ? "Réécouter avec le texte" : phase === "attempt" ? `Écouter · encore ${left}` : showScript ? "Relecture faite" : "Écoute terminée"}
       </button>
       {error ? <p className="mt-2 text-sm text-[#8d342e]">{error}</p> : null}
       {showScript ? <p className="mt-3 border-l-2 border-[#5c4318] pl-3 text-base leading-relaxed text-[#1c1915]">{clip.script}</p> : null}

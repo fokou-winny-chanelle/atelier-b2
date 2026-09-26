@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { listenPhase, type ListenKind, type ListenPhase } from "@/lib/listen";
 import type { AudioClip } from "@/lib/types";
 import { speakGerman, type SpeakHandle } from "@/lib/speak";
 import { useExamStore } from "@/lib/store";
@@ -9,11 +10,15 @@ export function AudioButton({
   sessionId,
   clip,
   plays,
+  reviewPlays,
+  revealed,
   showScript,
 }: {
   sessionId: string;
   clip: AudioClip;
   plays: number;
+  reviewPlays: number;
+  revealed: boolean;
   showScript: boolean;
 }) {
   const bumpAudio = useExamStore((state) => state.bumpAudio);
@@ -21,6 +26,8 @@ export function AudioButton({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const handle = useRef<SpeakHandle | null>(null);
+  const charged = useRef<ListenKind | null>(null);
+  const phase: ListenPhase = listenPhase({ revealed, attemptPlays: plays, maxPlays: clip.maxPlays, reviewPlays });
   const left = Math.max(0, clip.maxPlays - plays);
 
   useEffect(() => {
@@ -28,28 +35,35 @@ export function AudioButton({
   }, []);
 
   function play() {
-    if (left <= 0 || busy) return;
+    if (phase === "done" || busy) return;
+    const kind: ListenKind = phase === "review" ? "review" : "attempt";
     setError("");
-    bumpAudio(sessionId, clip.id);
+    charged.current = kind;
+    bumpAudio(sessionId, clip.id, kind);
     setBusy(true);
     handle.current = speakGerman(clip.script, {
-      onend: () => setBusy(false),
+      onend: () => {
+        charged.current = null;
+        setBusy(false);
+      },
       onerror: () => {
-        refundAudio(sessionId, clip.id);
+        if (charged.current) refundAudio(sessionId, clip.id, charged.current);
+        charged.current = null;
         setBusy(false);
         setError("La lecture n’a pas démarré. Monte le volume, coupe le mode silencieux, puis réessaie.");
       },
     });
   }
 
+  const withText = phase === "review" || (phase === "done" && showScript);
+  const label = busy ? "Wiedergabe läuft" : phase === "review" ? "Nochmal hören" : phase === "attempt" ? "Audio starten" : withText ? "Nochmal gehört" : "Wiedergabe aufgebraucht";
+
   return (
     <div className="audio">
-      <button type="button" className="audio-play" onClick={play} disabled={left <= 0 || busy}>
-        {busy ? "Wiedergabe läuft" : left > 0 ? "Audio starten" : "Wiedergabe aufgebraucht"}
+      <button type="button" className="audio-play" onClick={play} disabled={phase === "done" || busy}>
+        {label}
       </button>
-      <p className="audio-meta">
-        {clip.maxPlays === 1 ? "Einmal hörbar" : "Zweimal hörbar"} · noch {left}
-      </p>
+      <p className="audio-meta">{withText ? "Einmal mit Text" : `${clip.maxPlays === 1 ? "Einmal hörbar" : "Zweimal hörbar"} · noch ${left}`}</p>
       <p className="audio-note">Ohne Vorspulen. In der Prüfung kann der Text nicht angehalten werden.</p>
       {error ? <p className="audio-error">{error}</p> : null}
       {showScript ? (
