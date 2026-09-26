@@ -334,7 +334,7 @@ function ClipPlayer({
             onerror: () => {
               onRefund(clip.id);
               setBusy(false);
-              setError("La voix allemande n’a pas démarré. Réessaie. Sur ordinateur, vérifie qu’une voix allemande est installée.");
+              setError("La voix n’a pas démarré. Monte le volume, coupe le mode silencieux, puis réessaie.");
             },
           });
         }}
