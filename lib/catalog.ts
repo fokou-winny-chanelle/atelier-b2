@@ -20,6 +20,14 @@ export interface PoolPrompt {
   examId: string;
 }
 
+export interface PoolListen {
+  stimulusId: string;
+  partId: string;
+  examId: string;
+  skill: string;
+  questionIds: string[];
+}
+
 export interface SkillInfo {
   id: string;
   module: string;
@@ -125,6 +133,42 @@ export function trackedQuestions(): PoolCard[] {
     ),
   ];
 }
+export function poolListens(): PoolListen[] {
+  const units: PoolListen[] = [];
+  for (const exam of EXAMS) {
+    for (const part of exam.hoeren.parts) {
+      const scored = part.questions.filter((question) => !question.example);
+      if (scored.length === 0 || part.stimuli.length === 0) continue;
+      if (part.stimuli.length === 1) {
+        const stimulus = part.stimuli[0];
+        if (!stimulus) continue;
+        units.push({
+          stimulusId: stimulus.id,
+          partId: part.id,
+          examId: exam.id,
+          skill: skillOf("hoeren", part.title),
+          questionIds: scored.map((question) => question.id),
+        });
+        continue;
+      }
+      part.stimuli.forEach((stimulus, stimulusIndex) => {
+        const questionIds = scored
+          .filter((_, questionIndex) => Math.min(part.stimuli.length - 1, Math.floor((questionIndex * part.stimuli.length) / scored.length)) === stimulusIndex)
+          .map((question) => question.id);
+        if (questionIds.length === 0) return;
+        units.push({
+          stimulusId: stimulus.id,
+          partId: part.id,
+          examId: exam.id,
+          skill: skillOf("hoeren", part.title),
+          questionIds,
+        });
+      });
+    }
+  }
+  return units;
+}
+
 export function poolWrites(): PoolPrompt[] {
   return EXAMS.flatMap((exam) => exam.schreiben.tasks.map((task) => ({ taskId: task.id, examId: exam.id })));
 }

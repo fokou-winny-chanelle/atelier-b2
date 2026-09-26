@@ -9,7 +9,7 @@ import { locatePart, locateSpeaking, locateWriting } from "@/lib/catalog";
 import { SPEAKING_CRITERIA, WRITING_CRITERIA, type CriterionMark } from "@/lib/criteria";
 import { heldCount } from "@/lib/readiness";
 import { useLearnStore } from "@/lib/learn-store";
-import { listenPhase, type ListenKind } from "@/lib/listen";
+import { attemptFinished, listenPhase, type ListenKind } from "@/lib/listen";
 import { speakGerman, type SpeakHandle } from "@/lib/speak";
 import { countWords } from "@/lib/scoring";
 import type { AudioClip, Part, Question, SpeakingTask, WritingTask } from "@/lib/types";
@@ -27,10 +27,10 @@ function seriesTally(plan: NonNullable<ReturnType<typeof useLearnStore.getState>
   let wrong = 0;
   const misses: string[] = [];
   for (const step of plan.steps) {
-    if (step.kind !== "card" && step.kind !== "block") continue;
+    if (step.kind !== "card" && step.kind !== "block" && step.kind !== "listen") continue;
     const located = locatePart(step.partId);
     if (!located) continue;
-    const ids = step.kind === "card" && step.questionId ? [step.questionId] : located.part.questions.filter((question) => !question.example).map((question) => question.id);
+    const ids = step.kind === "card" && step.questionId ? [step.questionId] : step.kind === "listen" ? step.questionIds : located.part.questions.filter((question) => !question.example).map((question) => question.id);
     for (const id of ids) {
       const question = located.part.questions.find((item) => item.id === id);
       if (!question || question.example || !plan.revealed[id]) continue;
@@ -135,11 +135,13 @@ export function PracticeScreen() {
           </button>
         </p>
       </header>
-      {step.kind === "card" || step.kind === "block" ? (
+      {step.kind === "card" || step.kind === "block" || step.kind === "listen" ? (
         <QuestionStep
           key={plan.index}
           partId={step.partId}
           questionId={step.kind === "card" ? step.questionId : undefined}
+          questionIds={step.kind === "listen" ? step.questionIds : undefined}
+          stimulusId={step.kind === "listen" ? step.stimulusId : undefined}
           answers={plan.answers}
           revealed={plan.revealed}
           audioPlays={plan.audioPlays}
@@ -160,6 +162,8 @@ export function PracticeScreen() {
 function QuestionStep({
   partId,
   questionId,
+  questionIds,
+  stimulusId,
   answers,
   revealed,
   audioPlays,
@@ -172,6 +176,8 @@ function QuestionStep({
 }: {
   partId: string;
   questionId?: string;
+  questionIds?: string[];
+  stimulusId?: string;
   answers: Record<string, string>;
   revealed: Record<string, boolean>;
   audioPlays: Record<string, number>;
@@ -185,21 +191,34 @@ function QuestionStep({
   const located = locatePart(partId);
   const scroller = useRef<HTMLDivElement>(null);
   const answersPane = useRef<HTMLDivElement>(null);
+  const [hearing, setHearing] = useState<Record<string, boolean>>({});
   useEffect(() => {
     scroller.current?.scrollTo({ top: 0 });
   }, [questionId, partId]);
   if (!located) return <p className="p-4">Exercice introuvable.</p>;
   const part: Part = located.part;
   const scored = part.questions.filter((question) => !question.example);
-  const questions = questionId ? scored.filter((question: Question) => question.id === questionId) : scored;
+  const questions = questionIds
+    ? scored.filter((question: Question) => questionIds.includes(question.id))
+    : questionId
+      ? scored.filter((question: Question) => question.id === questionId)
+      : scored;
   const qIndex = questionId ? scored.findIndex((question: Question) => question.id === questionId) : -1;
-  const stimuli =
-    questionId && part.clips.length > 0 && part.stimuli.length > 1 && qIndex >= 0
+  const stimuli = stimulusId
+    ? part.stimuli.filter((item) => item.id === stimulusId)
+    : questionId && part.clips.length > 0 && part.stimuli.length > 1 && qIndex >= 0
       ? [part.stimuli[Math.min(part.stimuli.length - 1, Math.floor((qIndex * part.stimuli.length) / Math.max(scored.length, 1)))]].filter((item) => item != null)
       : part.stimuli;
-  const shown = questionId ? questions : part.questions;
+  const shown = questionId || questionIds ? questions : part.questions;
   const open = questions.some((question) => !revealed[question.id]);
   const wrongCount = questions.filter((question) => !question.example && revealed[question.id] && answers[question.id] !== question.answer).length;
+  const viewClips = stimuli
+    .map((stimulus) => part.clips.find((item) => item.id === stimulus.audioId))
+    .filter((clip): clip is NonNullable<typeof clip> => Boolean(clip));
+  const playsReady = attemptFinished(viewClips, audioPlays, hearing);
+  const answersReady = !questions.some((question) => !question.example && !answers[question.id]);
+  const playsNeeded = viewClips.reduce((max, clip) => Math.max(max, clip.maxPlays), 1);
+  const timesLabel = playsNeeded === 1 ? "une fois" : playsNeeded === 2 ? "deux fois" : `${playsNeeded} fois`;
 
   function select(questionIdToSet: string, choiceId: string) {
     const reserved = part.questions.filter((item) => item.example).map((item) => item.answer);
@@ -216,7 +235,11 @@ function QuestionStep({
   return (
     <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.85fr)] lg:overflow-hidden">
       <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-4 py-4 lg:px-10 lg:py-8">
-        <p className="max-w-2xl text-base leading-relaxed text-[#5e584e]">{part.instruction}</p>
+        <p className="max-w-2xl text-base leading-relaxed text-[#5e584e]">
+          {viewClips.length > 0
+            ? `Lis les questions. Écoute ${timesLabel}, sans le texte, puis coche. Vérifier s’ouvre quand ces écoutes sont finies. Le texte apparaît alors, et tu peux le réécouter une fois.`
+            : part.instruction}
+        </p>
         {stimuli.map((stimulus) => {
           const clip = part.clips.find((item) => item.id === stimulus.audioId);
           return (
@@ -232,6 +255,7 @@ function QuestionStep({
                   showScript={!open}
                   onPlay={onPlay}
                   onRefund={onRefund}
+                  onBusy={(busy) => setHearing((current) => ({ ...current, [clip.id]: busy }))}
                 />
               ) : null}
             </article>
@@ -254,7 +278,7 @@ function QuestionStep({
           <button
             type="button"
             className="mt-2 min-h-12 w-full rounded-full bg-[#16324f] font-semibold text-[#f6f1e7] disabled:bg-[#3d5164] disabled:text-[#f6f1e7]"
-            disabled={questions.some((question) => !question.example && !answers[question.id])}
+            disabled={!answersReady || !playsReady}
             onClick={() => {
               onReveal(questions.filter((question) => !question.example).map((question) => question.id));
               window.setTimeout(() => answersPane.current?.scrollTo({ top: 0 }), 0);
@@ -262,7 +286,11 @@ function QuestionStep({
           >
             Vérifier
           </button>
-        ) : (
+        ) : null}
+        {open && answersReady && !playsReady ? (
+          <p className="mt-2 text-sm leading-relaxed text-[#5e584e]">Il reste l’écoute sans texte. Vérifier s’ouvre après.</p>
+        ) : null}
+        {open ? null : (
           <button type="button" className="mt-2 min-h-12 w-full rounded-full bg-[#16324f] font-semibold text-[#f6f1e7]" onClick={onNext}>
             J’ai compris
           </button>
@@ -322,6 +350,7 @@ function ClipPlayer({
   showScript,
   onPlay,
   onRefund,
+  onBusy,
 }: {
   clip: AudioClip;
   plays: number;
@@ -329,20 +358,33 @@ function ClipPlayer({
   showScript: boolean;
   onPlay: (audioId: string, kind: ListenKind) => void;
   onRefund: (audioId: string, kind: ListenKind) => void;
+  onBusy: (busy: boolean) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const handle = useRef<SpeakHandle | null>(null);
   const charged = useRef<ListenKind | null>(null);
+  const onBusyRef = useRef(onBusy);
+  onBusyRef.current = onBusy;
   const phase = listenPhase({ revealed: showScript, attemptPlays: plays, maxPlays: clip.maxPlays, reviewPlays });
   const left = Math.max(0, clip.maxPlays - plays);
-  useEffect(() => () => handle.current?.cancel(), []);
-  const cue =
-    phase === "review"
-      ? "Texte entendu. Réécouter le lit encore une fois, pendant que tu suis."
-      : showScript
-        ? "Texte entendu. La relecture est faite."
-        : "Le texte reste caché. Après Vérifier, il apparaît et tu peux le réécouter une fois.";
+  useEffect(() => {
+    return () => {
+      handle.current?.cancel();
+      onBusyRef.current(false);
+    };
+  }, []);
+  const cue = busy && !showScript
+    ? "Écoute en cours, sans le texte."
+    : busy
+      ? "Relecture en cours."
+      : phase === "review"
+        ? "Texte entendu. Réécouter le lit encore une fois, pendant que tu suis."
+        : showScript
+          ? "Texte entendu. La relecture est faite."
+          : left > 0
+            ? `Encore ${left === 1 ? "une écoute" : `${left} écoutes`} sans texte.`
+            : "Écoute terminée. Vérifier montre le texte, puis une relecture.";
 
   return (
     <div className="mt-3">
@@ -358,15 +400,24 @@ function ClipPlayer({
           charged.current = kind;
           onPlay(clip.id, kind);
           setBusy(true);
+          onBusy(true);
           handle.current = speakGerman(clip.script, {
             onend: () => {
               charged.current = null;
               setBusy(false);
+              onBusy(false);
+            },
+            oninterrupt: () => {
+              if (charged.current) onRefund(clip.id, charged.current);
+              charged.current = null;
+              setBusy(false);
+              onBusy(false);
             },
             onerror: () => {
               if (charged.current) onRefund(clip.id, charged.current);
               charged.current = null;
               setBusy(false);
+              onBusy(false);
               setError("La voix n’a pas démarré. Monte le volume, coupe le mode silencieux, puis réessaie.");
             },
           });

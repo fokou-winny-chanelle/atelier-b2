@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { ListenKind } from "./listen";
 import { browserStorage } from "./persist-storage";
-import { poolBlocks, poolCards, poolSpeaks, poolWrites } from "./catalog";
+import { poolBlocks, poolCards, poolListens, poolSpeaks, poolWrites } from "./catalog";
 import { EXAMS } from "./exams";
 import { buildPlan, dayKey, nextMemory, type MemoryItem, type PlanStep } from "./plan";
 import type { MockModuleScore, MockRecord, ProductionRecord } from "./readiness";
@@ -54,6 +54,7 @@ function makePlan(kind: "daily" | "review" | "skill", memory: Record<string, Mem
     blocks: poolBlocks(),
     writes: poolWrites(),
     speaks: poolSpeaks(),
+    listens: poolListens(),
     kind,
     skill,
     salt,
@@ -91,6 +92,7 @@ export const useLearnStore = create<LearnState>()(
           blocks: poolBlocks(),
           writes: poolWrites(),
           speaks: poolSpeaks(),
+          listens: poolListens(),
           kind,
           skill,
         });
@@ -249,23 +251,43 @@ export const useLearnStore = create<LearnState>()(
 function stepsForMissed(questionIds: string[]): PlanStep[] {
   const cards = poolCards();
   const blocks = poolBlocks();
+  const listens = poolListens();
   const steps: PlanStep[] = [];
   const seen = new Set<string>();
+  let questions = 0;
   for (const questionId of questionIds) {
+    if (questions >= 12) break;
+    const unit = listens.find((item) => item.questionIds.includes(questionId));
+    if (unit) {
+      const already = steps.some((step) => step.kind === "listen" && step.stimulusId === unit.stimulusId);
+      if (!already) {
+        if (steps.length > 0 && questions + unit.questionIds.length > 12) break;
+        steps.push({
+          kind: "listen",
+          stimulusId: unit.stimulusId,
+          partId: unit.partId,
+          examId: unit.examId,
+          questionIds: unit.questionIds,
+        });
+        questions += unit.questionIds.length;
+      }
+      continue;
+    }
     const card = cards.find((item) => item.questionId === questionId);
     if (card) {
       if (seen.has(questionId)) continue;
       seen.add(questionId);
       steps.push({ kind: "card", questionId, partId: card.partId, examId: card.examId });
+      questions += 1;
       continue;
     }
     const block = blocks.find((item) => item.questionIds.includes(questionId));
     if (block && !steps.some((step) => step.kind === "block" && step.partId === block.partId)) {
       steps.push({ kind: "block", partId: block.partId, examId: block.examId });
+      questions += block.questionIds.length;
     }
-    if (steps.length >= 12) break;
   }
-  return steps.slice(0, 12);
+  return steps;
 }
 
 function findAnswer(questionId: string): string | undefined {

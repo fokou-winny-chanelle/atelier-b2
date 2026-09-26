@@ -6,3 +6,12 @@ export function listenPhase(input: { revealed: boolean; attemptPlays: number; ma
   if (input.revealed) return input.reviewPlays >= 1 ? "done" : "review";
   return input.attemptPlays >= input.maxPlays ? "done" : "attempt";
 }
+
+/** The written text waits until every official play has finished, including the one still sounding. */
+export function attemptFinished(
+  clips: { id: string; maxPlays: number }[],
+  plays: Record<string, number>,
+  hearing: Record<string, boolean> = {},
+): boolean {
+  return clips.every((clip) => (plays[clip.id] ?? 0) >= clip.maxPlays && !hearing[clip.id]);
+}

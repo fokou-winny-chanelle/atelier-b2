@@ -7,6 +7,7 @@ import { AudioButton } from "@/components/session/AudioButton";
 import { RichBlock } from "@/components/session/RichBlock";
 import { useHydrated } from "@/components/useHydrated";
 import { getExam } from "@/lib/exams";
+import { attemptFinished } from "@/lib/listen";
 import { countWords, unansweredInPart } from "@/lib/scoring";
 import { useExamStore } from "@/lib/store";
 import type { Mode, ModuleId, Part, Question, Session } from "@/lib/types";
@@ -90,6 +91,7 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [leftPct, setLeftPct] = useState(46);
   const [mobilePane, setMobilePane] = useState<"texte" | "questions">("texte");
+  const [hearing, setHearing] = useState<Record<string, boolean>>({});
   const expired = useExamExpired(session?.mode, session?.endsAt ?? null);
 
   const exam = session ? getExam(session.examId) : undefined;
@@ -126,6 +128,8 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
 
   const moduleId = session.phases[session.phaseIndex] ?? "lesen";
   const locked = expired;
+  const currentPart = moduleId === "lesen" || moduleId === "hoeren" ? exam[moduleId].parts[session.partIndex] : undefined;
+  const revealReady = !currentPart || attemptFinished(currentPart.clips, session.audioPlays, hearing);
 
   return (
     <div className="room" onContextMenu={(event) => session.mode === "pruefung" && event.preventDefault()}>
@@ -192,6 +196,8 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
             addHighlight(session.id, { id: crypto.randomUUID(), blockId, quote })
           }
           onRemoveHighlight={(markId) => removeHighlight(session.id, markId)}
+          revealReady={revealReady}
+          onBusy={(clipId, busy) => setHearing((current) => ({ ...current, [clipId]: busy }))}
         />
       ) : moduleId === "schreiben" ? (
         <WritingRoom session={session} tasks={exam.schreiben.tasks} leftPct={leftPct} setLeftPct={setLeftPct} locked={locked} onChange={setWriting} />
@@ -227,9 +233,13 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
         }}
         onReveal={
           session.mode === "uebung" && (moduleId === "lesen" || moduleId === "hoeren")
-            ? () => revealPart(session.id, exam[moduleId].parts[session.partIndex]?.id ?? "")
+            ? () => {
+                if (!revealReady) return;
+                revealPart(session.id, exam[moduleId].parts[session.partIndex]?.id ?? "");
+              }
             : undefined
         }
+        revealReady={revealReady}
         showUmlauts={moduleId === "schreiben"}
         onUmlaut={(char) => insertUmlaut(char)}
       />
@@ -305,6 +315,8 @@ function ClosedModule({
   onFlag,
   onHighlight,
   onRemoveHighlight,
+  revealReady,
+  onBusy,
 }: {
   session: Session;
   moduleId: "lesen" | "hoeren";
@@ -317,6 +329,8 @@ function ClosedModule({
   onFlag: (questionId: string) => void;
   onHighlight: (blockId: string, quote: string) => void;
   onRemoveHighlight: (markId: string) => void;
+  revealReady: boolean;
+  onBusy: (clipId: string, busy: boolean) => void;
 }) {
   const part = parts[session.partIndex] ?? parts[0];
   if (!part) return null;
@@ -344,6 +358,7 @@ function ClosedModule({
               session.mode,
               revealed,
               part.clips.some((clip) => (session.reviewPlays?.[clip.id] ?? 0) < 1),
+              revealReady,
             )}
           </p>
         ) : null}
@@ -382,6 +397,7 @@ function ClosedModule({
                   reviewPlays={session.reviewPlays?.[clip.id] ?? 0}
                   revealed={session.mode === "uebung" && revealed}
                   showScript={session.mode === "uebung" && revealed}
+                  onBusy={(busy) => onBusy(clip.id, busy)}
                 />
               ) : null}
             </article>
@@ -674,6 +690,7 @@ function Footer({
   onNext,
   onPrev,
   onReveal,
+  revealReady,
   showUmlauts,
   onUmlaut,
 }: {
@@ -688,6 +705,7 @@ function Footer({
   onNext: () => void;
   onPrev: () => void;
   onReveal?: () => void;
+  revealReady: boolean;
   showUmlauts: boolean;
   onUmlaut: (char: string) => void;
 }) {
@@ -718,7 +736,7 @@ function Footer({
           </button>
         ) : null}
         {onReveal ? (
-          <button type="button" onClick={onReveal}>
+          <button type="button" onClick={onReveal} disabled={!revealReady}>
             Teil korrigieren
           </button>
         ) : null}
@@ -838,9 +856,10 @@ function ConfirmLeave({
   );
 }
 
-function heardCue(mode: Mode, revealed: boolean, reviewOpen: boolean): string {
+function heardCue(mode: Mode, revealed: boolean, reviewOpen: boolean, revealReady: boolean): string {
   if (mode === "pruefung") return "Le texte entendu reste caché jusqu’à la page de résultat. Lis les questions, puis Audio starten.";
-  if (!revealed) return "Le texte entendu reste caché, comme à l’examen. Après Teil korrigieren, il apparaît et Nochmal hören le relit une fois.";
+  if (!revealed && !revealReady) return "Le texte reste caché. Teil korrigieren s’ouvre quand Audio starten a été utilisé le nombre de fois indiqué, et que la voix s’est arrêtée.";
+  if (!revealed) return "Les écoutes sont faites. Teil korrigieren montre le texte, puis Nochmal hören le relit une fois.";
   if (reviewOpen) return "Le texte est sous le lecteur. Nochmal hören le relit une fois, pendant que tu suis.";
   return "La relecture est faite. La raison est sous chaque question.";
 }
@@ -876,7 +895,7 @@ function helpLines(moduleId: ModuleId, mode: Mode, phone: boolean): string[] {
     const audio =
       mode === "pruefung"
         ? "Audio starten joue le texte une ou deux fois, sans pause. Le texte entendu reste caché jusqu’à la page de résultat."
-        : `Audio starten joue le texte une ou deux fois, sans le texte. Après Teil korrigieren, le texte apparaît ${phone ? "sur Texte" : "à gauche"} et Nochmal hören le relit une fois.`;
+        : `Audio starten joue le texte une ou deux fois, sans le texte. Teil korrigieren s’ouvre seulement après. Le texte apparaît alors ${phone ? "sur Texte" : "à gauche"}, et Nochmal hören le relit une fois.`;
     return [place, audio, "Lis les questions, écoute, puis coche. Markieren garde une question. Übersicht : vert = répondu, jaune = marqué."];
   }
   if (moduleId === "lesen") {

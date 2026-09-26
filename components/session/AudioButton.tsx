@@ -13,6 +13,7 @@ export function AudioButton({
   reviewPlays,
   revealed,
   showScript,
+  onBusy,
 }: {
   sessionId: string;
   clip: AudioClip;
@@ -20,6 +21,7 @@ export function AudioButton({
   reviewPlays: number;
   revealed: boolean;
   showScript: boolean;
+  onBusy?: (busy: boolean) => void;
 }) {
   const bumpAudio = useExamStore((state) => state.bumpAudio);
   const refundAudio = useExamStore((state) => state.refundAudio);
@@ -27,11 +29,16 @@ export function AudioButton({
   const [error, setError] = useState("");
   const handle = useRef<SpeakHandle | null>(null);
   const charged = useRef<ListenKind | null>(null);
+  const onBusyRef = useRef(onBusy);
+  onBusyRef.current = onBusy;
   const phase: ListenPhase = listenPhase({ revealed, attemptPlays: plays, maxPlays: clip.maxPlays, reviewPlays });
   const left = Math.max(0, clip.maxPlays - plays);
 
   useEffect(() => {
-    return () => handle.current?.cancel();
+    return () => {
+      handle.current?.cancel();
+      onBusyRef.current?.(false);
+    };
   }, []);
 
   function play() {
@@ -41,15 +48,24 @@ export function AudioButton({
     charged.current = kind;
     bumpAudio(sessionId, clip.id, kind);
     setBusy(true);
+    onBusy?.(true);
     handle.current = speakGerman(clip.script, {
       onend: () => {
         charged.current = null;
         setBusy(false);
+        onBusy?.(false);
+      },
+      oninterrupt: () => {
+        if (charged.current) refundAudio(sessionId, clip.id, charged.current);
+        charged.current = null;
+        setBusy(false);
+        onBusy?.(false);
       },
       onerror: () => {
         if (charged.current) refundAudio(sessionId, clip.id, charged.current);
         charged.current = null;
         setBusy(false);
+        onBusy?.(false);
         setError("La lecture n’a pas démarré. Monte le volume, coupe le mode silencieux, puis réessaie.");
       },
     });

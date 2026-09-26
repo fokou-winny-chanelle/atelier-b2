@@ -47,13 +47,16 @@ if (typeof window !== "undefined" && window.speechSynthesis) {
   synth.addEventListener?.("voiceschanged", load);
 }
 
+/** The playback that currently owns the speaker. A new tap releases it so the previous screen does not stay “still playing”. */
+let releaseCurrent: (() => void) | null = null;
+
 /**
  * Speaks German in the same turn as the tap. Phones reject speech that starts
  * after a delay, and iOS drops an utterance that follows cancel() immediately.
  */
 export function speakGerman(
   text: string,
-  handlers: { onend: () => void; onerror: () => void },
+  handlers: { onend: () => void; onerror: () => void; oninterrupt?: () => void },
 ): SpeakHandle {
   const synth = typeof window !== "undefined" ? window.speechSynthesis : undefined;
   if (!synth) {
@@ -67,6 +70,9 @@ export function speakGerman(
   let index = 0;
   let stopped = false;
 
+  releaseCurrent?.();
+  releaseCurrent = null;
+
   const keepalive = phone
     ? 0
     : window.setInterval(() => {
@@ -75,10 +81,20 @@ export function speakGerman(
         synth.resume();
       }, 10000);
 
+  const release = () => {
+    if (stopped) return;
+    stopped = true;
+    window.clearInterval(keepalive);
+    if (releaseCurrent === release) releaseCurrent = null;
+    (handlers.oninterrupt ?? handlers.onerror)();
+  };
+  releaseCurrent = release;
+
   const finish = (ok: boolean) => {
     if (stopped) return;
     stopped = true;
     window.clearInterval(keepalive);
+    if (releaseCurrent === release) releaseCurrent = null;
     if (ok) handlers.onend();
     else handlers.onerror();
   };
@@ -97,7 +113,10 @@ export function speakGerman(
     utterance.onend = speakNext;
     utterance.onerror = (event) => {
       if (stopped) return;
-      if (event.error === "interrupted" || event.error === "canceled") return;
+      if (event.error === "interrupted" || event.error === "canceled") {
+        release();
+        return;
+      }
       finish(false);
     };
     try {
@@ -115,6 +134,7 @@ export function speakGerman(
     cancel: () => {
       stopped = true;
       window.clearInterval(keepalive);
+      if (releaseCurrent === release) releaseCurrent = null;
       synth.cancel();
     },
   };

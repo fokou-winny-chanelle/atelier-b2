@@ -1,4 +1,4 @@
-import { SKILLS, type PoolBlock, type PoolCard, type PoolPrompt } from "./catalog";
+import { SKILLS, type PoolBlock, type PoolCard, type PoolListen, type PoolPrompt } from "./catalog";
 
 export interface MemoryItem {
   seen: number;
@@ -11,6 +11,7 @@ export interface MemoryItem {
 export type PlanStep =
   | { kind: "card"; questionId: string; partId: string; examId: string }
   | { kind: "block"; partId: string; examId: string }
+  | { kind: "listen"; stimulusId: string; partId: string; examId: string; questionIds: string[] }
   | { kind: "write"; taskId: string; examId: string }
   | { kind: "speak"; taskId: string; examId: string };
 
@@ -80,6 +81,7 @@ export function buildPlan(input: {
   blocks: PoolBlock[];
   writes: PoolPrompt[];
   speaks: PoolPrompt[];
+  listens?: PoolListen[];
   kind: "daily" | "review" | "skill";
   skill?: string;
   salt?: string;
@@ -89,14 +91,22 @@ export function buildPlan(input: {
 
   if (input.kind === "review") {
     const dueCards = shuffle(
-      input.cards.filter((card) => isDue(input.memory, card.questionId, input.now)),
+      input.cards.filter((card) => !isListening(card.skill) && isDue(input.memory, card.questionId, input.now)),
       seed,
     ).slice(0, 12);
     const dueBlocks = shuffle(
       input.blocks.filter((block) => block.questionIds.some((questionId) => isDue(input.memory, questionId, input.now))),
       `${seed}:blocks`,
     ).slice(0, 2);
+    const dueListens = takeListens(
+      shuffle(
+        (input.listens ?? []).filter((unit) => unit.questionIds.some((questionId) => isDue(input.memory, questionId, input.now))),
+        `${seed}:listen`,
+      ),
+      12,
+    );
     const steps: PlanStep[] = [
+      ...dueListens.map(listenStep),
       ...dueBlocks.map((block) => ({ kind: "block" as const, partId: block.partId, examId: block.examId })),
       ...dueCards.map(cardStep),
     ];
@@ -113,6 +123,17 @@ export function buildPlan(input: {
 
   const steps: PlanStep[] = [];
   const blocked = new Set<string>();
+  const listen = pickListen(input.listens ?? [], input.memory, input.now, seed);
+  if (listen) {
+    steps.push({
+      kind: "listen",
+      stimulusId: listen.stimulusId,
+      partId: listen.partId,
+      examId: listen.examId,
+      questionIds: listen.questionIds,
+    });
+    for (const questionId of listen.questionIds) blocked.add(questionId);
+  }
 
   if (weekday === 6 && input.writes.length > 0) {
     const task = input.writes[Math.floor(input.now / (7 * DAY)) % input.writes.length];
@@ -134,19 +155,21 @@ export function buildPlan(input: {
     }
   }
 
+  const readable = (card: PoolCard) => !isListening(card.skill) && !blocked.has(card.questionId);
   const due = shuffle(
-    input.cards.filter((card) => isDue(input.memory, card.questionId, input.now) && !blocked.has(card.questionId)),
+    input.cards.filter((card) => readable(card) && isDue(input.memory, card.questionId, input.now)),
     `${seed}:due`,
   );
   const unseen = shuffle(
-    input.cards.filter((card) => !input.memory[card.questionId] && !blocked.has(card.questionId)),
+    input.cards.filter((card) => readable(card) && !input.memory[card.questionId]),
     `${seed}:new`,
   );
   const rest = shuffle(
-    input.cards.filter((card) => !blocked.has(card.questionId)),
+    input.cards.filter((card) => readable(card)),
     `${seed}:rest`,
   );
-  const target = weekday === 6 || weekday === 0 ? 4 : 10;
+  const baseTarget = weekday === 6 || weekday === 0 ? 4 : 10;
+  const target = Math.max(0, baseTarget - blocked.size);
   const picked: PoolCard[] = [];
   for (const card of [...due, ...unseen, ...rest]) {
     if (picked.length >= target) break;
@@ -157,8 +180,10 @@ export function buildPlan(input: {
 
   const cards = steps.filter((step) => step.kind === "card").length;
   const hasBlock = steps.some((step) => step.kind === "block");
+  const hasListen = steps.some((step) => step.kind === "listen");
   const hasWrite = steps.some((step) => step.kind === "write" || step.kind === "speak");
   const bits = [
+    hasListen ? "une écoute" : "",
     hasWrite ? "un texte ou un oral" : "",
     hasBlock ? "une partie entière" : "",
     cards === 1 ? "1 question" : cards > 1 ? `${cards} questions` : "",
@@ -169,6 +194,34 @@ export function buildPlan(input: {
   return { title: "Aujourd’hui", blurb, steps };
 }
 
+function isListening(skill: string): boolean {
+  return skill.startsWith("hoeren");
+}
+
+function listenStep(unit: PoolListen): PlanStep {
+  return { kind: "listen", stimulusId: unit.stimulusId, partId: unit.partId, examId: unit.examId, questionIds: unit.questionIds };
+}
+
+function takeListens(units: PoolListen[], limit: number): PoolListen[] {
+  const picked: PoolListen[] = [];
+  let count = 0;
+  for (const unit of units) {
+    if (picked.length > 0 && count + unit.questionIds.length > limit) break;
+    picked.push(unit);
+    count += unit.questionIds.length;
+    if (count >= limit) break;
+  }
+  return picked;
+}
+
+function pickListen(listens: PoolListen[], memory: Record<string, MemoryItem>, now: number, seed: string): PoolListen | undefined {
+  if (listens.length === 0) return undefined;
+  const due = listens.filter((unit) => unit.questionIds.some((questionId) => isDue(memory, questionId, now)));
+  const unseen = listens.filter((unit) => unit.questionIds.every((questionId) => !memory[questionId]));
+  const pool = due.length > 0 ? due : unseen.length > 0 ? unseen : listens;
+  return shuffle(pool, `${seed}:listen`)[0];
+}
+
 function skillPlan(
   input: {
     now: number;
@@ -177,6 +230,7 @@ function skillPlan(
     blocks: PoolBlock[];
     writes: PoolPrompt[];
     speaks: PoolPrompt[];
+    listens?: PoolListen[];
     skill?: string;
   },
   seed: string,
@@ -199,6 +253,24 @@ function skillPlan(
     };
   }
   const named = SKILLS.find((item) => item.id === skill)?.title;
+  if (isListening(skill)) {
+    const mine = (input.listens ?? []).filter((unit) => unit.skill === skill);
+    const ordered = [
+      ...shuffle(mine.filter((unit) => unit.questionIds.some((questionId) => isDue(input.memory, questionId, input.now))), `${seed}:due`),
+      ...shuffle(mine.filter((unit) => unit.questionIds.every((questionId) => !input.memory[questionId])), `${seed}:new`),
+      ...shuffle(mine, `${seed}:rest`),
+    ];
+    const unique: PoolListen[] = [];
+    for (const unit of ordered) {
+      if (unique.some((item) => item.stimulusId === unit.stimulusId)) continue;
+      unique.push(unit);
+    }
+    return {
+      title: named ?? "Écoute",
+      blurb: "Tu écoutes chaque texte en entier, sans le lire, puis tu vois pourquoi.",
+      steps: takeListens(unique, 8).map(listenStep),
+    };
+  }
   if (EXCLUSIVE_SKILLS.has(skill)) {
     const ranked = input.blocks
       .filter((item) => item.skill === skill)
