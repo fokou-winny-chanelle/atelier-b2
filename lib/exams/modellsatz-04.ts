@@ -12,14 +12,14 @@ const people: Choice[] = [
 ];
 
 const sentences: Choice[] = [
-  { id: "a", text: "Viele kommen nicht wegen eines bestimmten Buches, sondern weil der Raum ruhig und geheizt ist." },
-  { id: "b", text: "Wer nur die Ausleihe zählt, übersieht deshalb einen großen Teil der Besuche." },
-  { id: "c", text: "In mehreren Städten bleiben die Häuser deshalb an einem Abend in der Woche länger offen." },
+  { id: "a", text: "Viele kommen wegen eines ruhigen Platzes, nicht wegen eines bestimmten Titels." },
+  { id: "b", text: "In dieser Statistik fehlen genau die Besuche, bei denen niemand ein Buch mitnimmt." },
+  { id: "c", text: "Ein Abend in der Woche bleibt dann über 20 Uhr hinaus geöffnet." },
   { id: "d", text: "Ohne zusätzliches Personal lässt sich dieses Programm nicht seriös anbieten." },
-  { id: "e", text: "Gerade für Menschen ohne eigenen Schreibtisch zu Hause ist das oft der einzige Ort zum Lernen." },
-  { id: "f", text: "Die meisten Bibliotheken sollen deshalb vollständig schließen und die Bücher verkaufen." },
-  { id: "g", text: "Fußballstadien übernehmen diese Aufgabe inzwischen zuverlässiger als jede Bibliothek." },
-  { id: "h", text: "Trotzdem bleibt die Frage, wer die längeren Öffnungszeiten bezahlt." },
+  { id: "e", text: "Für längere Hausarbeiten fehlt vielen zu Hause genau so ein Tisch." },
+  { id: "f", text: "Die Ausleihe selbst soll dafür abgeschafft werden." },
+  { id: "g", text: "Die meisten Besucher kommen ausschließlich wegen der aktuellen Bestseller." },
+  { id: "h", text: "Offen bleibt, welches Amt diese zusätzlichen Stunden bezahlt." },
 ];
 
 const opinions: Choice[] = [
@@ -102,14 +102,14 @@ export const modellsatz04: Exam = {
             id: "ms4-l1-d",
             kicker: "d",
             title: "Denis",
-            body: "Nachts liefere ich Essen aus. Pro Stunde verdiene ich mehr als in den meisten Cafés, und das merke ich auf dem Konto. Der Preis ist der Schlaf: Um zwei liege ich selten im Bett. Nach den Prüfungen im Juli höre ich auf, das habe ich mir fest vorgenommen. Bis dahin rechne ich jede Schicht, statt sie als Treffen mit Kollegen zu sehen.",
+            body: "Nachts liefere ich Essen aus. Pro Stunde verdiene ich mehr als in den meisten Cafés, und das merke ich auf dem Konto. Der Preis ist der Schlaf: Vor zwei Uhr nachts liege ich selten schon im Bett. Nach den Prüfungen im Juli höre ich auf, das habe ich mir fest vorgenommen. Bis dahin rechne ich jede Schicht, statt sie als Treffen mit Kollegen zu sehen.",
           },
         ],
         questions: [
           q("ms4-l-0", 0, "Wer arbeitet früh am Samstag in einer Bäckerei?", people, "a", "Ayla commence à cinq heures le samedi à la boulangerie. C’est l’exemple.", true),
           q("ms4-l-1", 1, "Wer hat einen Nebenjob abgelehnt, weil die Prüfungen Vorrang haben?", people, "b", "Ben a refusé un job : ce semestre, les examens décident. Ayla, elle, continue.", false),
           q("ms4-l-2", 2, "Wer arbeitet bewusst im eigenen Studienfach?", people, "c", "Clara est au laboratoire de sa faculté. Un job de caisse, elle l’aurait refusé.", false),
-          q("ms4-l-3", 3, "Wessen Schlaf leidet unter der Arbeit?", people, "d", "Denis se couche rarement à deux heures. La fatigue de Clara concerne le sport, pas le sommeil décrit ainsi.", false),
+          q("ms4-l-3", 3, "Wessen Schlaf leidet unter der Arbeit?", people, "d", "Denis est rarement déjà au lit avant deux heures du matin. La fatigue de Clara concerne le sport, pas le sommeil.", false),
           q("ms4-l-4", 4, "Wessen Noten sind schlechter geworden, ohne dass die Person kündigt?", people, "a", "Deux notes d’Ayla ont baissé, et elle ne démissionne pas. Ben n’a pas de job.", false),
           q("ms4-l-5", 5, "Wer muss die Miete nicht selbst verdienen?", people, "b", "Les parents de Ben paient le loyer. Ayla, elle, travaille pour le sien.", false),
           q("ms4-l-6", 6, "Wer akzeptiert Müdigkeit nur, wenn der Job zur späteren Laufbahn passt?", people, "c", "Clara échange la fatigue contre une expérience dans sa matière, pas contre n’importe quel salaire.", false),
@@ -131,16 +131,16 @@ export const modellsatz04: Exam = {
             id: "ms4-l2-text",
             kicker: "Artikel",
             title: "Mehr als ein Regal",
-            body: "Stadtbibliotheken verleihen noch immer Bücher. Wer nur diese Zahl liest, versteht das Haus aber nur zur Hälfte. [[10]]\n\nStudierende sitzen dort mit Laptops, Rentner lesen Zeitung, und im Winter kommen Menschen, die zu Hause frieren. [[11]] Die Bibliothek wird dann zum Arbeitsplatz, nicht nur zur Ausleihe.\n\nDeshalb ändern einige Häuser ihre Uhr. [[12]] Wer schichtarbeitet, erreicht einen Schalter um zehn Uhr morgens oft nicht.\n\nSchwieriger ist das Angebot jenseits der Bücher. Lesepatenschaften und Hilfe beim Ausfüllen von Formularen werden nachgefragt. [[13]] Ehrenamtliche können eine Lücke füllen, aber nicht die ganze Woche tragen.\n\nDie Leitung weiß, dass längere Abende Geld kosten. [[14]] Ein gut besuchter Saal überzeugt den Stadtrat leichter als ein leeres Regal.\n\nOb das Modell bleibt, hängt vom nächsten Haushalt ab. [[15]] Solange die Städte nur die Ausleihzahlen melden, wirkt die Bibliothek kleiner, als sie ist.",
+            body: "Stadtbibliotheken verleihen noch immer Bücher. Wer nur diese Zahl liest, versteht das Haus aber nur zur Hälfte. [[10]]\n\nStudierende sitzen dort an langen Tischen mit Laptops, Rentner lesen Zeitung. [[11]] Diese Hausarbeiten lagen früher zwischen den Töpfen. Die Bibliothek wird so zum Arbeitsplatz, nicht nur zur Ausleihe.\n\nDeshalb ändern einige Häuser ihre Uhr. [[12]] Wer schichtarbeitet, erreicht einen Schalter um zehn Uhr morgens oft nicht.\n\nSchwieriger ist das Angebot jenseits der Bücher. Lesepatenschaften und Hilfe beim Ausfüllen von Formularen werden nachgefragt. [[13]] Ehrenamtliche können eine Lücke füllen, aber nicht die ganze Woche tragen.\n\nDie Leitung weiß, dass längere Abende Geld kosten. [[14]] Ein gut besuchter Saal überzeugt den Stadtrat leichter als ein leeres Regal.\n\nOb das Modell bleibt, hängt vom nächsten Haushalt ab, und der liest vor allem eine Statistik. [[15]] Solange die Städte nur die Ausleihzahlen melden, wirkt die Bibliothek kleiner, als sie ist.",
           },
         ],
         questions: [
-          q("ms4-l-10", 10, "Lücke 10", sentences, "a", "La phrase suivante décrit qui vient. Le trou dit qu’on vient pour le calme et le chauffage, pas pour un livre précis.", false),
-          q("ms4-l-11", 11, "Lücke 11", sentences, "e", "Après les étudiants et le froid, la phrase utile est le bureau pour qui n’en a pas chez soi.", false),
-          q("ms4-l-12", 12, "Lücke 12", sentences, "c", "Le paragraphe change l’horaire. La phrase parle d’une soirée d’ouverture plus longue.", false),
-          q("ms4-l-13", 13, "Lücke 13", sentences, "d", "La suite dit que les bénévoles ne portent pas toute la semaine. Il manque donc du personnel pour ce programme.", false),
-          q("ms4-l-14", 14, "Lücke 14", sentences, "h", "Juste avant, l’argent des soirées. La question est qui paie. La salle pleine vient après, comme argument.", false),
-          q("ms4-l-15", 15, "Lücke 15", sentences, "b", "La dernière phrase parle des chiffres de prêt qui rétrécissent la bibliothèque. Compter seulement le prêt rate une partie des visites.", false),
+          q("ms4-l-10", 10, "Lücke 10", sentences, "a", "Juste avant, compter seulement les prêts ne dit pas tout. La phrase dit qu’on vient pour un endroit calme, pas pour un titre. Le paragraphe suivant nomme alors qui s’assoit là.", false),
+          q("ms4-l-11", 11, "Lücke 11", sentences, "e", "« Diese Hausarbeiten » juste après n’a de sens que si la phrase parle des devoirs. « Genau so ein Tisch » renvoie aux longues tables de la phrase d’avant.", false),
+          q("ms4-l-12", 12, "Lücke 12", sentences, "c", "Ils changent l’horaire. La phrase dit qu’un soir dépasse 20 h. La suite explique pourquoi : le travail posté rate le guichet de 10 h.", false),
+          q("ms4-l-13", 13, "Lücke 13", sentences, "d", "La suite dit que les bénévoles ne portent pas toute la semaine. Ce programme exige donc du personnel en plus.", false),
+          q("ms4-l-14", 14, "Lücke 14", sentences, "h", "Les soirées coûtent. La phrase demande quel service paie ces heures. La salle pleine, juste après, est l’argument devant le conseil.", false),
+          q("ms4-l-15", 15, "Lücke 15", sentences, "b", "« Diese Statistik » renvoie au budget, juste avant. Elle oublie les visites sans livre. La phrase suivante dit que les villes ne publient que les prêts.", false),
         ],
       },
       {
@@ -180,7 +180,7 @@ export const modellsatz04: Exam = {
           { id: "ms4-l4-a", kicker: "a", title: "Elif, Heidelberg", body: "Erst im Praktikum habe ich gemerkt, dass der Beruf anders aussieht als im Seminar. Die Akten, die Pausen, die Sprache am Telefon: Das steht in keinem Lehrbuch. Danach wusste ich, dass ich genau das machen will." },
           { id: "ms4-l4-b", kicker: "b", title: "Jonas, Linz", body: "Drei Monate ohne Lohn kann ich mir nicht leisten. Wenn die Hochschule ein Praktikum verlangt, muss sie auch sagen, wer die Miete zahlt. Sonst können nur die teilnehmen, deren Eltern das tragen." },
           { id: "ms4-l4-c", kicker: "c", title: "Petra, Bremen", body: "In unserer Abteilung heißen die Praktikanten Hilfe und machen die Arbeit einer halben Stelle. Lernen steht auf dem Papier, auf dem Schreibtisch liegt die Post. Das ist keine Ausbildung, das ist ein Loch in der Personaldecke." },
-          { id: "ms4-l4-d", kicker: "d", title: "Samir, Bonn", body: "Ich hätte keinen Platz gefunden, wenn das Career-Center nicht angerufen hätte. Eine Liste mit geprüften Betrieben wäre für alle fairer als die Suche über den Cousin. Die Hochschule kennt die seriösen Adressen besser als ich." },
+          { id: "ms4-l4-d", kicker: "d", title: "Samir, Bonn", body: "Ich hätte keinen Platz gefunden, wenn das Büro für Praktika nicht angerufen hätte. Eine Liste mit geprüften Betrieben wäre für alle fairer als die Suche über den Cousin. Die Hochschule kennt die seriösen Adressen besser als ich." },
           { id: "ms4-l4-e", kicker: "e", title: "Nora, Basel", body: "Drei Monate mitten im Semester sprengen den Plan. Ich kann nicht gleichzeitig Klausuren schreiben und volle Tage im Betrieb sein. Ein kürzeres Praktikum in den Ferien würde denselben Einblick geben, ohne das Jahr zu zerreißen." },
           { id: "ms4-l4-f", kicker: "f", title: "Timo, Erfurt", body: "Nach dem Praktikum hat mich derselbe Betrieb übernommen. Nicht wegen der Note, sondern weil sie mich schon kannten. Ohne diese Monate hätte ich die Stelle nicht bekommen, das hat die Chefin später gesagt." },
           { id: "ms4-l4-g", kicker: "g", title: "Lara, Graz", body: "Ein Semester in Lissabon war wunderbar, aber es hat mich nicht gelehrt, wie ein deutsches Büro funktioniert. Reisen und Praktikum sind zwei verschiedene Dinge. Wer nur den Stempel im Pass hat, kennt den Beruf noch nicht." },
@@ -190,7 +190,7 @@ export const modellsatz04: Exam = {
           q("ms4-l-bsp4", 0, "Das Praktikum zeigt den Beruf, wie er wirklich ist", opinions, "a", "Elif découvre le métier hors du séminaire : dossiers, pauses, téléphone. C’est l’exemple.", true),
           q("ms4-l-22", 22, "Ohne Bezahlung bleibt das Praktikum ungerecht", opinions, "b", "Jonas parle du loyer : sans salaire, seuls ceux dont les parents paient peuvent participer.", false),
           q("ms4-l-23", 23, "Praktikanten ersetzen fehlendes Personal", opinions, "c", "Petra décrit un demi-poste déguisé en apprentissage. Le trou dans l’effectif est le sujet.", false),
-          q("ms4-l-24", 24, "Die Hochschule soll Plätze vermitteln", opinions, "d", "Samir n’a eu une place que parce que le centre d’orientation a appelé. Il veut une liste de lieux sérieux.", false),
+          q("ms4-l-24", 24, "Die Hochschule soll Plätze vermitteln", opinions, "d", "Samir n’a eu une place que parce que le bureau des stages a appelé. Il veut une liste de lieux sérieux.", false),
           q("ms4-l-25", 25, "Die Dauer kollidiert mit den Prüfungen", opinions, "e", "Nora ne peut pas passer des examens et être au bureau à plein temps. Elle propose les vacances.", false),
           q("ms4-l-26", 26, "Aus dem Praktikum wurde die Stelle", opinions, "f", "Timo a été embauché par la même entreprise parce qu’on le connaissait déjà.", false),
           q("ms4-l-27", 27, "Ohne Betrieb bleibt die Theorie blind", opinions, "h", "Cem défend l’obligation parce que le quotidien reste invisible, pas pour le tampon du certificat.", false),
@@ -220,7 +220,7 @@ export const modellsatz04: Exam = {
           {
             id: "ms4-l5-28",
             kicker: "§ 28",
-            body: "Kinder unter acht Jahren dürfen nur mit einer Begleitperson ins Bad. Die Begleitperson muss selbst eine Eintrittskarte lösen und schwimmfähig sein. Gruppen ab zehn Personen melden sich zwei Tage vorher an.",
+            body: "Kinder unter acht Jahren dürfen nur mit einer Begleitperson ins Bad. Erwachsene ohne Schwimmnachweis dürfen nur das Nichtschwimmerbecken benutzen. Gruppen ab zehn Personen melden sich zwei Tage vorher an.",
           },
           {
             id: "ms4-l5-29",
@@ -235,7 +235,7 @@ export const modellsatz04: Exam = {
         ],
         questions: [
           q("ms4-l-bsp5", 0, "Beispiel § 0", headings, "c", "Le paragraphe ne donne que les jours et les heures. C’est « Öffnungszeiten ».", true),
-          q("ms4-l-28", 28, "§ 28", headings, "f", "Âge, accompagnateur et groupes : ce sont les conditions d’entrée, pas le tarif.", false),
+          q("ms4-l-28", 28, "§ 28", headings, "f", "Enfants, adultes sans brevet et groupes de dix : ce sont les conditions d’entrée, pas seulement l’espace enfants.", false),
           q("ms4-l-29", 29, "§ 29", headings, "e", "Saut, plongée et orage concernent la conduite dans l’eau, pas le vestiaire.", false),
           q("ms4-l-30", 30, "§ 30", headings, "a", "Prix, durée et carte perdue : c’est le droit d’entrée, pas les cours.", false),
         ],
@@ -257,7 +257,7 @@ export const modellsatz04: Exam = {
         stimuli: [
           { id: "ms4-h1-s1", kicker: "Text 1", title: "Aufgaben 1–2", body: "Eine Frau sucht einen Schirm.", audioId: "ms4-h-c1" },
           { id: "ms4-h1-s2", kicker: "Text 2", title: "Aufgaben 3–4", body: "Eine Ansage in der Apotheke.", audioId: "ms4-h-c2" },
-          { id: "ms4-h1-s3", kicker: "Text 3", title: "Aufgaben 5–6", body: "Zwei Personen sprechen über eine Probe.", audioId: "ms4-h-c3" },
+          { id: "ms4-h1-s3", kicker: "Text 3", title: "Aufgaben 5–6", body: "Eine Sprachnachricht an den Chor.", audioId: "ms4-h-c3" },
           { id: "ms4-h1-s4", kicker: "Text 4", title: "Aufgaben 7–8", body: "Eine Durchsage am Bahnhof.", audioId: "ms4-h-c4" },
           { id: "ms4-h1-s5", kicker: "Text 5", title: "Aufgaben 9–10", body: "Ein Mann erklärt ein Rezept.", audioId: "ms4-h-c5" },
         ],
@@ -269,7 +269,7 @@ export const modellsatz04: Exam = {
           { id: "ms4-h-c5", label: "Text 5", maxPlays: 1, script: "Für die Suppe brauchen Sie keine Sahne. Das Rezept nimmt Milch und am Ende einen Löffel Zitrone. Die Kartoffeln kommen zuerst ins Wasser, das Gemüse erst nach zehn Minuten. Salz geben Sie ganz zum Schluss dazu, nicht am Anfang." },
         ],
         questions: [
-          q("ms4-h-1", 1, "Der Schirm ist gestohlen worden.", yn, "f", "Elle ne l’a pas perdu : il est encore au café, à côté du vestiaire.", false),
+          q("ms4-h-1", 1, "Der Schirm ist gestohlen worden.", yn, "f", "Le parapluie est encore au café, à côté du vestiaire. Il n’a donc pas été volé.", false),
           q("ms4-h-2", 2, "Wann holt sie den Schirm?", abc("Sofort.", "Nach der Vorlesung.", "Morgen früh im Fundbüro."), "b", "Elle le récupère après le cours, sinon elle serait en retard.", false),
           q("ms4-h-3", 3, "Diese Apotheke hat sonntags geschlossen.", yn, "f", "Le dimanche, cette pharmacie est ouverte de 10 h à 12 h.", false),
           q("ms4-h-4", 4, "Wo ist der Notdienst ab 18 Uhr?", abc("In dieser Filiale.", "In der Marktstraße.", "Nur sonntags hier."), "b", "Le service de garde commence dans la Marktstraße, pas dans cette pharmacie.", false),
@@ -323,7 +323,7 @@ export const modellsatz04: Exam = {
             id: "ms4-h-c7",
             label: "Gespräch",
             maxPlays: 1,
-            script: "Idris: Ich nutze die App, wenn im Haus etwas fehlt, zum Beispiel ein Medikament am Sonntag. Dann frage ich, bevor ich durch die halbe Stadt fahre. Böhm: Mich stören die Fotos von falsch geparkten Autos. Das ist kein Hinweis, das ist eine Anklage, und ich will damit nichts zu tun haben. Lange: Die Moderation löscht Beleidigungen, aber nicht jede Kritik. Wer einen Ton will wie in einer amtlichen Mitteilung, ist in der falschen App. Idris: Was ich nicht tue: private Diagnosen. Ich sage, wo die Notapotheke ist, ich behandle niemanden über den Chat. Böhm: Ein Aushang im Flur würde mir reichen. Die App setzt voraus, dass ich das Telefon immer dabei habe, und das will ich mit siebzig nicht. Lange: Trotzdem erreichen wir über die App Menschen, die den Zettel an der Tür nie lesen, weil sie spät nach Hause kommen.",
+            script: "Idris: Ich arbeite in der Apotheke im Haus und nutze die App, wenn etwas fehlt, zum Beispiel ein Medikament am Sonntag. Dann frage ich, bevor ich durch die halbe Stadt fahre. Böhm: Mich stören die Fotos von falsch geparkten Autos. Das ist kein Hinweis, das ist eine Anklage, und ich will damit nichts zu tun haben. Lange: Die Moderation löscht Beleidigungen, aber nicht jede Kritik. Wer einen Ton will wie in einer amtlichen Mitteilung, ist in der falschen App. Idris: Was ich nicht tue: private Diagnosen. Ich sage, wo die Notapotheke ist, ich behandle niemanden über den Chat. Böhm: Ein Aushang im Flur würde mir reichen. Die App setzt voraus, dass ich das Telefon immer dabei habe, und das will ich mit siebzig nicht. Lange: Trotzdem erreichen wir über die App Menschen, die den Zettel an der Tür nie lesen, weil sie spät nach Hause kommen.",
           },
         ],
         questions: [

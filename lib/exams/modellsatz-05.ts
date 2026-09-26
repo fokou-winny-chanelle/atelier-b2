@@ -12,14 +12,14 @@ const people: Choice[] = [
 ];
 
 const sentences: Choice[] = [
-  { id: "a", text: "Bei vielen alten Häusern entweicht die Wärme über Fenster und Dach, nicht nur über den Heizkörper." },
-  { id: "b", text: "Sie arbeitet deutlich leiser, wenn das Gerät nicht direkt unter einem Schlafzimmerfenster steht." },
+  { id: "a", text: "Beim Dach geht oft mehr Wärme verloren als beim alten Heizkörper." },
+  { id: "b", text: "Das Gerät arbeitet deutlich leiser, wenn es nicht direkt unter einem Schlafzimmerfenster steht." },
   { id: "c", text: "Der Stromverbrauch sinkt nur, wenn das Haus vorher gedämmt wurde." },
   { id: "d", text: "Die Förderung deckt selten die ganze Rechnung." },
   { id: "e", text: "Termine bei Fachbetrieben liegen oft mehrere Monate im Voraus." },
-  { id: "f", text: "Alle Gasheizungen müssen noch in diesem Monat ausgebaut werden." },
-  { id: "g", text: "Im Sommer kühlt das Gerät jedes Haus so stark, dass man einen Pullover braucht." },
-  { id: "h", text: "Viele entscheiden sich trotzdem erst, wenn die alte Heizung wirklich ausfällt." },
+  { id: "f", text: "Ein neues Gerät senkt die Rechnung auch ohne jede Dämmung." },
+  { id: "g", text: "Der Lärm ist nachts kein Thema, weil die Pumpe nur tagsüber läuft." },
+  { id: "h", text: "Oft fällt die Entscheidung erst, wenn die alte Heizung wirklich ausfällt." },
 ];
 
 const opinions: Choice[] = [
@@ -131,12 +131,12 @@ export const modellsatz05: Exam = {
             id: "ms5-l2-text",
             kicker: "Artikel",
             title: "Wärme aus der Luft",
-            body: "Wärmepumpen gelten als Ersatz für alte Heizungen. In einem unsanierten Haus aus den fünfziger Jahren ist der Tausch aber kein einfacher Gerätewechsel. [[10]]\n\nWer die Pumpe einbaut und die Fenster lässt, wie sie sind, heizt oft die Straße mit. [[11]] Erst die Dämmung macht aus dem neuen Gerät eine Ersparnis.\n\nAuch der Standort entscheidet über den Ärger mit den Nachbarn. [[12]] Ein leises Summen nachts unter dem offenen Fenster reicht für eine Beschwerde.\n\nDie Rechnung überrascht viele Haushalte. [[13]] Was die Förderung nicht trägt, muss der Eigentümer trotzdem zahlen, oft in Raten.\n\nDazu kommt die Wartezeit. [[14]] Wer im Oktober anruft, weil die Heizung schon kalt bleibt, hört häufig einen Termin im Frühjahr.\n\nDer Austausch läuft deshalb selten als ruhiger Plan. [[15]] Bis dahin bleibt die alte Anlage im Keller, auch wenn sie teuer und laut ist.",
+            body: "Wärmepumpen gelten als Ersatz für alte Heizungen. In einem unsanierten Haus aus den fünfziger Jahren verliert man Wärme an Stellen, die kein neues Gerät repariert. [[10]]\n\nWer die Pumpe einbaut und die Fenster lässt, wie sie sind, heizt oft die Straße mit. [[11]] Erst die Dämmung macht aus dem neuen Gerät eine Ersparnis.\n\nAuch der Standort entscheidet über den Ärger mit den Nachbarn. [[12]] Ein leises Summen nachts unter dem offenen Fenster reicht für eine Beschwerde.\n\nDie Rechnung überrascht viele Haushalte. [[13]] Was die Förderung nicht trägt, muss der Eigentümer trotzdem zahlen, oft in Raten.\n\nDazu kommt die Wartezeit. [[14]] Wer im Oktober anruft, weil die Heizung schon kalt bleibt, hört häufig einen Termin im Frühjahr.\n\nDer Austausch läuft deshalb selten als ruhiger Plan. [[15]] Bis dahin bleibt die alte Anlage im Keller, auch wenn sie teuer und laut ist.",
           },
         ],
         questions: [
-          q("ms5-l-10", 10, "Lücke 10", sentences, "a", "Le trou explique pourquoi une vieille maison n’est pas un simple changement d’appareil : la chaleur part par les fenêtres et le toit.", false),
-          q("ms5-l-11", 11, "Lücke 11", sentences, "c", "La phrase suivante dit que l’isolation transforme l’appareil en économie. Le trou dit que la consommation ne baisse qu’après isolation.", false),
+          q("ms5-l-10", 10, "Lücke 10", sentences, "a", "Juste avant, la chaleur part par des endroits qu’un appareil neuf ne répare pas. La phrase parle du toit, pas des fenêtres : les fenêtres sont le paragraphe suivant.", false),
+          q("ms5-l-11", 11, "Lücke 11", sentences, "c", "La phrase suivante dit que seule l’isolation fait une économie. Le trou dit que le courant ne baisse qu’après isolation. La phrase « sans isolation, la facture baisse quand même » contredit la suite.", false),
           q("ms5-l-12", 12, "Lücke 12", sentences, "b", "Le paragraphe parle du lieu et des voisins. La pompe est plus silencieuse loin de la fenêtre de la chambre.", false),
           q("ms5-l-13", 13, "Lücke 13", sentences, "d", "La suite parle de ce que l’aide ne couvre pas. La subvention paie rarement toute la facture.", false),
           q("ms5-l-14", 14, "Lücke 14", sentences, "e", "Octobre et un rendez-vous au printemps : les délais des artisans se comptent en mois.", false),
@@ -215,7 +215,7 @@ export const modellsatz05: Exam = {
             id: "ms5-l5-0",
             kicker: "Beispiel § 0",
             title: "Lösung: c",
-            body: "Die Hütte darf höchstens 12 Quadratmeter groß sein und nicht als Wohnung genutzt werden. Ein fester Wasseranschluss in der Hütte ist nicht vorgesehen. Die Farbe der Außenwand legt der Vorstand fest.",
+            body: "Die Hütte darf höchstens 12 Quadratmeter groß sein und nicht als Wohnung genutzt werden. Die Farbe der Außenwand legt der Vorstand fest. Ein festes Bett darin ist untersagt.",
           },
           {
             id: "ms5-l5-28",
@@ -234,7 +234,7 @@ export const modellsatz05: Exam = {
           },
         ],
         questions: [
-          q("ms5-l-bsp5", 0, "Beispiel § 0", headings, "c", "Taille de la cabane, pas de logement : c’est « Gartenhütte », pas l’eau.", true),
+          q("ms5-l-bsp5", 0, "Beispiel § 0", headings, "c", "Taille de la cabane, interdiction d’y dormir : c’est « Gartenhütte ». L’eau est dans un autre paragraphe.", true),
           q("ms5-l-28", 28, "§ 28", headings, "b", "Citerne, robinet et tuyau laissé la nuit : il s’agit de l’eau, pas du loyer.", false),
           q("ms5-l-29", 29, "§ 29", headings, "f", "Horaires sans machines et dimanches : ce sont les heures de calme, pas les allées.", false),
           q("ms5-l-30", 30, "§ 30", headings, "e", "Poules, abeilles, chiens et animaux sauvages : le paragraphe parle des animaux.", false),
@@ -258,7 +258,7 @@ export const modellsatz05: Exam = {
           { id: "ms5-h1-s1", kicker: "Text 1", title: "Aufgaben 1–2", body: "Eine Ansage in einer Zahnarztpraxis.", audioId: "ms5-h-c1" },
           { id: "ms5-h1-s2", kicker: "Text 2", title: "Aufgaben 3–4", body: "Ein Anruf in einer Werkstatt.", audioId: "ms5-h-c2" },
           { id: "ms5-h1-s3", kicker: "Text 3", title: "Aufgaben 5–6", body: "Eine Wetterwarnung für Wanderer.", audioId: "ms5-h-c3" },
-          { id: "ms5-h1-s4", kicker: "Text 4", title: "Aufgaben 7–8", body: "Zwei Kollegen sprechen über einen Drucker.", audioId: "ms5-h-c4" },
+          { id: "ms5-h1-s4", kicker: "Text 4", title: "Aufgaben 7–8", body: "Eine Kollegin erklärt den Drucker.", audioId: "ms5-h-c4" },
           { id: "ms5-h1-s5", kicker: "Text 5", title: "Aufgaben 9–10", body: "Eine Frau plant einen Geburtstag.", audioId: "ms5-h-c5" },
         ],
         clips: [
@@ -296,12 +296,12 @@ export const modellsatz05: Exam = {
             id: "ms5-h-c6",
             label: "Interview",
             maxPlays: 2,
-            script: "Moderator: Frau Nowak, warum brechen so viele die Ausbildung ab? Nowak: Selten wegen der Theorie in der Schule. Häufig, weil der Betrieb anders war als auf der Website. Wer drei Monate nur fegt, geht. Moderator: Ist das immer die Schuld des Betriebs? Nowak: Nicht immer. Manche erwarten vom ersten Tag an Verantwortung, die erst im zweiten Jahr kommt. Dann fühlen sie sich unterfordert und nennen es Langeweile. Beides führt zum Abbruch, aber aus verschiedenen Gründen. Moderator: Was hilft in den ersten Wochen? Nowak: Eine feste Ansprechperson, nicht zehn. Und ein Gespräch nach vier Wochen, nicht erst nach der Probezeit. Vier Wochen sind früh genug, um etwas zu ändern. Moderator: Sollen Eltern eingreifen? Nowak: Zuhören ja. Den Vertrag kündigen, ohne die junge Person zu fragen, nein. Die Unterschrift ist die ihre. Moderator: Und ein Wechsel des Betriebs? Nowak: Der ist besser als ein kompletter Ausstieg, wenn der Beruf stimmt und nur die Stelle nicht. Die Kammer kennt freie Plätze. Ein Neustart in einem anderen Beruf ist der langsamere Weg.",
+            script: "Moderator: Frau Nowak, warum brechen so viele die Ausbildung ab? Nowak: Selten wegen der Theorie in der Schule. Häufig, weil der Betrieb anders war als auf der Website. Wer drei Monate nur fegt, geht. Moderator: Ist das immer die Schuld des Betriebs? Nowak: Nicht immer. Manche erwarten vom ersten Tag an Verantwortung, die erst im zweiten Jahr kommt. Dann fühlen sie sich unterfordert und nennen es Langeweile. Das ist nicht Überforderung. Beides führt zum Abbruch, aber aus verschiedenen Gründen. Moderator: Was hilft in den ersten Wochen? Nowak: Eine feste Ansprechperson, nicht zehn. Und ein Gespräch nach vier Wochen, nicht erst nach der Probezeit. Vier Wochen sind früh genug, um etwas zu ändern. Moderator: Sollen Eltern eingreifen? Nowak: Zuhören ja. Den Vertrag kündigen, ohne die junge Person zu fragen, nein. Die Unterschrift ist die ihre. Moderator: Und ein Wechsel des Betriebs? Nowak: Der ist besser als ein kompletter Ausstieg, wenn der Beruf stimmt und nur die Stelle nicht. Die Kammer kennt freie Plätze. Ein Neustart in einem anderen Beruf ist der langsamere Weg.",
           },
         ],
         questions: [
           q("ms5-h-11", 11, "Der häufigste Grund für den Abbruch ist …", abc("die Theorie in der Berufsschule.", "ein Betrieb, der anders ist als versprochen.", "zu viel Verantwortung am ersten Tag, in jedem Fall."), "b", "Rarement la théorie. Souvent l’entreprise ne correspond pas au site. Balayer pendant trois mois fait partir.", false),
-          q("ms5-h-12", 12, "Unterforderung …", abc("kommt nie vor.", "kann auch zum Abbruch führen, aus einem anderen Grund als Überforderung.", "ist immer die Schuld der Eltern."), "b", "Certains attendent trop tôt une responsabilité du deuxième année, s’ennuient, et partent pour une autre raison.", false),
+          q("ms5-h-12", 12, "Unterforderung …", abc("kommt nie vor.", "kann auch zum Abbruch führen, aus einem anderen Grund als Überforderung.", "ist immer die Schuld der Eltern."), "b", "Certains attendent trop tôt une responsabilité de la deuxième année. Nowak dit que ce n’est pas de la surcharge, et que les deux mènent à l’abandon.", false),
           q("ms5-h-13", 13, "Was soll es in den ersten Wochen geben?", abc("Zehn verschiedene Ansprechpersonen.", "Eine feste Person und ein Gespräch nach vier Wochen.", "Das erste Gespräch erst nach der Probezeit."), "b", "Une seule personne de référence, et un entretien après quatre semaines, pas à la fin de l’essai.", false),
           q("ms5-h-14", 14, "Vier Wochen sind …", abc("zu spät für jede Änderung.", "früh genug, um noch etwas zu ändern.", "erst der Beginn der Probezeit, ohne Gespräch."), "b", "Quatre semaines suffisent pour changer quelque chose. Ce n’est pas trop tard.", false),
           q("ms5-h-15", 15, "Was dürfen Eltern?", abc("Den Vertrag ohne Rücksprache kündigen.", "Zuhören, aber nicht allein kündigen.", "Die Unterschrift ersetzen."), "b", "Écouter oui. Résilier sans demander à la personne, non. La signature est la sienne.", false),
@@ -323,7 +323,7 @@ export const modellsatz05: Exam = {
             id: "ms5-h-c7",
             label: "Gespräch",
             maxPlays: 1,
-            script: "Adler: Ab 19 Uhr senken wir die Musik, nicht weil der Badebetrieb endet, sondern weil die Häuser hinter der Hecke Schlafzimmer zur Anlage haben. Yusuf: Mein Sohn lernt dort schwimmen. Wenn um 19 Uhr Schluss wäre, kämen wir unter der Woche gar nicht an, ich habe bis 17 Uhr Dienst. Pell: Ich wohne im zweiten Stock und höre die Ansagen, nicht die Kinder. Die Ansage alle zehn Minuten ist lauter als das Plantschen. Adler: Die Ansage können wir kürzen. Das Wasser und die Aufsicht bleiben bis 20 Uhr, das habe ich mit der Stadt so vereinbart. Yusuf: Eine Stunde reicht uns. Hauptsache, das Becken ist unter der Woche nach der Arbeit noch offen. Pell: Wenn die Musik um 19 Uhr leiser wird und die Ansage wegfällt, schlafe ich. Den Badebetrieb selbst will ich nicht abschaffen.",
+            script: "Adler: Ich leite das Bad. Ab 19 Uhr senken wir die Musik, nicht weil der Badebetrieb endet, sondern weil die Häuser hinter der Hecke Schlafzimmer zur Anlage haben. Yusuf: Mein Sohn lernt dort schwimmen. Wenn um 19 Uhr Schluss wäre, kämen wir unter der Woche gar nicht an, ich habe bis 17 Uhr Dienst. Pell: Ich wohne im zweiten Stock und höre die Ansagen, nicht die Kinder. Die Ansage alle zehn Minuten ist lauter als das Plantschen. Adler: Die Ansage können wir kürzen. Das Wasser und die Aufsicht bleiben bis 20 Uhr, das habe ich mit der Stadt so vereinbart. Yusuf: Eine Stunde reicht uns. Hauptsache, das Becken ist unter der Woche nach der Arbeit noch offen. Pell: Wenn die Musik um 19 Uhr leiser wird und die Ansage wegfällt, schlafe ich. Den Badebetrieb selbst will ich nicht abschaffen.",
           },
         ],
         questions: [
